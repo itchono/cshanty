@@ -1,0 +1,29 @@
+[build-system]
+requires = [
+    "setuptools>=64",
+    "wheel",
+    "cffi>=1.16.0",
+    "setuptools_scm[toml]>=6.0",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cshanty"
+description = "Solar Sail Guidance"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Mingde Yin", email = "mdsuper@hotmail.com" }]
+maintainers = [{ name = "Mingde Yin", email = "mdsuper@hotmail.com" }]
+dependencies = ["cffi >= 1.16.0"]
+dynamic = ["version"]
+
+[project.urls]
+homepage = "https://github.com/itchono/cshanty"
+
+[tool.setuptools.packages.find]
+include = ["cshanty", "cshanty.*"]
+where = ["src"]
+
+[tool.setuptools_scm]
+write_to = "src/cshanty/_version.py"
