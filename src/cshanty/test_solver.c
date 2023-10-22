@@ -4,18 +4,18 @@
 
 void test_ode(double t, double *y, double *dydt)
 {
-    dydt[0] = y[0];
+    dydt[0] = -y[0];
 }
 
 double analytic_solution(double t)
 {
-    return exp(t);
+    return exp(-t);
 }
 
 int main()
 {
     double y0[] = {1, 0, 0, 0, 0, 0};
-    solution *sol = rk89(test_ode, 0, 1, y0, 0.1, 1);
+    solution *sol = rk89(test_ode, 0, 1, y0, 0.1, 1e-1);
     printf("n: %d\n", sol->n);
 
     printf("t\ty\ty_analytic\terror\n");
