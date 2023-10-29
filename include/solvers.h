@@ -135,16 +135,30 @@ typedef struct RKSolution
     int n;                 // number of steps taken
 } RKSolution;
 
-RKSolution *rk89(void (*f)(double, double[VEC_SIZE], double[VEC_SIZE]), double t0, double tf, double y0[VEC_SIZE], double h0, double tol){
+RKSolution *rk89(void (*f)(double, double[VEC_SIZE], double[VEC_SIZE]),
+                 double t0, double tf, double y0[VEC_SIZE], double h0, double tol){
 #define RK89_STAGES 16
-#define RK89_ORD 9
-    RK_METHOD(rk89_a, rk89_b, rk89_bh, rk89_c, RK89_ORD, RK89_STAGES)}
+#define RK89_ORDER 9
+    RK_METHOD(rk89_a, rk89_b, rk89_bh, rk89_c, RK89_ORDER, RK89_STAGES)}
 
-RKSolution *rk56(void (*f)(double, double[VEC_SIZE], double[VEC_SIZE]), double t0, double tf, double y0[VEC_SIZE], double h0, double tol)
+RKSolution *rk78(void (*f)(double, double[VEC_SIZE], double[VEC_SIZE]),
+                 double t0, double tf, double y0[VEC_SIZE], double h0, double tol){
+#define RK78_STAGES 13
+#define RK78_ORDER 8
+    RK_METHOD(rk78_a, rk78_b, rk78_bh, rk78_c, RK78_ORDER, RK78_STAGES)}
+
+RKSolution *rk67(void (*f)(double, double[VEC_SIZE], double[VEC_SIZE]),
+                 double t0, double tf, double y0[VEC_SIZE], double h0, double tol){
+#define RK67_STAGES 10
+#define RK67_ORDER 7
+    RK_METHOD(rk67_a, rk67_b, rk67_bh, rk67_c, RK67_ORDER, RK67_STAGES)}
+
+RKSolution *rk56(void (*f)(double, double[VEC_SIZE], double[VEC_SIZE]),
+                 double t0, double tf, double y0[VEC_SIZE], double h0, double tol)
 {
 #define RK56_STAGES 9
-#define RK56_ORD 6
-    RK_METHOD(rk56_a, rk56_b, rk56_bh, rk56_c, 6.0, 9)
+#define RK56_ORDER 6
+    RK_METHOD(rk56_a, rk56_b, rk56_bh, rk56_c, RK56_ORDER, RK56_STAGES)
 }
 
 #endif
