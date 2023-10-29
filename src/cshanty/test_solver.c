@@ -15,12 +15,12 @@ double analytic_solution(double t)
 int main()
 {
     double y0[] = {1, 0, 0, 0, 0, 0};
-    solution *sol = rk89(test_ode, 0, 1, y0, 0.1, 1e-1);
+    RKSolution *sol = rk56(test_ode, 0, 10, y0, 0.1, 1e-6);
     printf("n: %d\n", sol->n);
 
-    printf("t\ty\ty_analytic\terror\n");
+    printf("t\t\ty\t\ty_analytic\terror\n");
     for (int i = 0; i < sol->n; i++)
     {
-        printf("%f\t%f\t%f\t%f\n", sol->t[i], sol->y[i][0], analytic_solution(sol->t[i]), sol->y[i][0] - analytic_solution(sol->t[i]));
+        printf("%.4e\t%.4e\t%.4e\t%.4e\n", sol->t[i], sol->y[i][0], analytic_solution(sol->t[i]), sol->y[i][0] - analytic_solution(sol->t[i]));
     }
 }

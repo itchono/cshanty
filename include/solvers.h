@@ -5,469 +5,241 @@
 
 #define VEC_SIZE 6 // dimension of vector (kept static at 6 for orbit prop)
 #define RK89_STAGES 16
+#define RK56_STAGES 9
+
 #include <stdlib.h>
 #include <math.h>
 #include <stdio.h>
+#include "solver_weights.h"
 
-typedef struct AdaptiveSolution
+typedef struct RKSolution
 {
     double *t;             // timesteps
     double (*y)[VEC_SIZE]; // function value
     int n;                 // number of steps taken
-} solution;
+} RKSolution;
 
-solution *rk89(void (*f)(double, double[VEC_SIZE], double[VEC_SIZE]), double t0, double tf, double y0[VEC_SIZE], double h0, double tol)
+RKSolution *rk89(void (*f)(double, double[VEC_SIZE], double[VEC_SIZE]), double t0, double tf, double y0[VEC_SIZE], double h0, double tol)
 {
-    double rk89_c[] = {
-        0.00000000000000000000,
-        0.04000000000000000083,
-        0.09648736013787360954,
-        0.14473104020681040738,
-        0.57599999999999995648,
-        0.22723265646187659761,
-        0.54076734353812339062,
-        0.64000000000000001332,
-        0.47999999999999998224,
-        0.06754000000000000281,
-        0.25000000000000000000,
-        0.67709201535432428365,
-        0.81149999999999999911,
-        0.90600000000000002753,
-        1.00000000000000000000,
-        1.00000000000000000000,
-    };
-    double rk89_b[] = {
-        0.01458885278405539637,
-        0.00000000000000000000,
-        0.00000000000000000000,
-        0.00000000000000000000,
-        0.00000000000000000000,
-        0.00000000000000000000,
-        0.00000000000000000000,
-        0.00202419788788933252,
-        0.21780470845697166848,
-        0.12748953408543897692,
-        0.22446177454631319192,
-        0.17872544912599030997,
-        0.07594344758096557846,
-        0.12948458791975614446,
-        0.02947744761261941737,
-        0.00000000000000000000,
-    };
-    double rk89_bh[] = {
-        0.02034666655224434684,
-        0.00000000000000000000,
-        0.00000000000000000000,
-        0.00000000000000000000,
-        0.00000000000000000000,
-        0.00000000000000000000,
-        0.00000000000000000000,
-        1.06961765098270000784,
-        0.07680834711303187456,
-        0.11307781868852403995,
-        0.25525873579819624570,
-        -0.98258980869191636653,
-        0.39815458244215140571,
-        0.00000000000000000000,
-        0.00000000000000000000,
-        0.04932600711506839042,
-    };
-    double rk89_a[16][16] = {
-        {
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-        },
-        {
-            0.04000000000000000083,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-        },
-        {
-            -0.01988527319182291017,
-            0.11637263332969652319,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-        },
-        {
-            0.03618276005170260184,
-            0.00000000000000000000,
-            0.10854828015510781247,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-        },
-        {
-            2.27211426429017748774,
-            0.00000000000000000000,
-            -8.52688644797639838657,
-            6.83077218368622141043,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-        },
-        {
-            0.05094385535389374386,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.17558650498090710990,
-            0.00070229612707574678,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-        },
-        {
-            0.14247836686832848763,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            -0.35417994346686842988,
-            0.07595315450295100912,
-            0.67651576563371229600,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-        },
-        {
-            0.07111111111111111105,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.32799092876058982826,
-            0.24089796012829906013,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-        },
-        {
-            0.07124999999999999389,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.32688424515752456667,
-            0.11561575484247543777,
-            -0.03375000000000000222,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-        },
-        {
-            0.04822677322465810518,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.03948559980495400246,
-            0.10588511619346581416,
-            -0.02152006320474309300,
-            -0.10453742601833482251,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-        },
-        {
-            -0.02609113435754923521,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.03333333333333333287,
-            -0.16525040066381049830,
-            0.03434664118368616764,
-            0.15957582832152089614,
-            0.21408573218281934381,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-        },
-        {
-            -0.03628423396255658906,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            -1.09616759742720870641,
-            0.18260355043213311044,
-            0.07082254444170683894,
-            -0.02313647018482431136,
-            0.27112047263209326786,
-            1.30813374942298077386,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-        },
-        {
-            -0.50746350564169750985,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            -6.63134219865723739673,
-            -0.25274801009088010417,
-            -0.49526123800360954963,
-            0.29325255452538867562,
-            1.44010869376828098964,
-            6.23793449864705618069,
-            0.72701920545269871354,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-        },
-        {
-            0.61301182569559320434,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            9.08880389164046320616,
-            -0.40737881562934485924,
-            1.79073338949037474954,
-            0.71492716676175505075,
-            -1.43858085784172295973,
-            -8.26332931206474086139,
-            -1.53757057080886516687,
-            0.34538328275648716437,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-        },
-        {
-            -1.21169791034387386297,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            -19.05581871559595441568,
-            1.26306067538987520926,
-            -6.91391696917845788306,
-            -0.67646226650949803361,
-            3.36786044502660786293,
-            18.00675164312590936788,
-            6.83882892679427989435,
-            -1.03151645192195040579,
-            0.41291062321306226668,
-            0.00000000000000000000,
-            0.00000000000000000000,
-        },
-        {
-            2.15738900749405360102,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            23.80712219809580432184,
-            0.88627792492165557992,
-            13.13913039759876433266,
-            -2.60441570928771470861,
-            -5.19385994978387266485,
-            -20.41234071154150697680,
-            -12.30085625250572256562,
-            1.52155309500853941351,
-            0.00000000000000000000,
-            0.00000000000000000000,
-            0.00000000000000000000,
-        },
-    };
-
     if (tf <= t0)
         return NULL; // error case
 
     ////// Initial estimate for n = number of rows in solution
-    int n = (int)((tf - t0) / h0); // 1 step every 10 seconds
+    int n = (int)((tf - t0) / h0);
     int step = 0;
 
     ////// Allocate result struct
-    solution *result = (solution *)malloc(sizeof(solution));
+    RKSolution *result = (RKSolution *)malloc(sizeof(RKSolution));
     result->y = (double(*)[6])malloc(n * sizeof(double[VEC_SIZE]));
     result->t = (double(*))malloc(n * sizeof(double));
 
     ////// Prepare Step variables
-    double h = h0; // initial stepsize
-    double h_old;  // previous step variable
-    double t = t0; // intial time
+    double h = h0;                   // initial stepsize
+    double t = t0;                   // intial time
+    double k[RK89_STAGES][VEC_SIZE]; // k values, containing derivatives at each stage
+    double y_stage[VEC_SIZE];        // used to evaluate derivative at each state
+    double y_curr[VEC_SIZE];         // solution at beginning of current step
 
     // Init y0, t0 (step 0)
     for (int j = 0; j < VEC_SIZE; j++)
+    {
         result->y[0][j] = y0[j];
+        y_curr[j] = y0[j];
+    }
     result->t[0] = t;
 
     // Create Step Variables
-    double k[RK89_STAGES][VEC_SIZE]; // k values
-    double y_i[VEC_SIZE];            // function inputs at each step
-    double y_curr[VEC_SIZE];         // current solution array, and also used to update itself for next step
 
-    double err; // magnitude of error
+    double err; // magnitude of error, used for error estimate
 
     // zero-out k
-    for (int i = 0; i < RK89_STAGES; i++)
+    for (int stage = 0; stage < RK89_STAGES; stage++)
         for (int j = 0; j < VEC_SIZE; j++)
-            k[i][j] = 0;
+            k[stage][j] = 0;
 
     /////// INTEGRATION STEPS
     while (t - h <= tf)
     {
-        for (int j = 0; j < VEC_SIZE; j++)
-            y_curr[j] = result->y[step][j]; // get current y (for vectorization purposes)
+        // Evaluate derivative at stage 0
+        f(t, y_curr, k[0]);
 
-        f(t, y_curr, k[0]); // RK Stage 0
-
-        // Perform all RK Stages [1, s)
-        for (int r = 1; r < RK89_STAGES; r++)
+        // Evaluate derivatives at stages 1-15
+        for (int stage = 1; stage < RK89_STAGES; stage++)
         {
             //// Prepare input vector
             for (int j = 0; j < VEC_SIZE; j++)
             {
-                y_i[j] = y_curr[j]; // take current sol
-                for (int w = 0; w < r; w++)
-                    y_i[j] += h * k[w][j] * rk89_a[r][w]; // Add previous steps
+                y_stage[j] = y_curr[j]; // take current sol
+                for (int w = 0; w < stage; w++)
+                    y_stage[j] += h * k[w][j] * rk89_a[stage][w]; // Add previous steps
             }
-            f(t + h * rk89_c[r], y_i, k[r]); // evaluate next k
+            f(t + h * rk89_c[stage], y_stage, k[stage]); // evaluate next k
         }
 
-        // Calculate error
-
+        // Calculate solution estimates
         err = 0;
-        for (int i = 0; i < RK89_STAGES; i++)
+        double sol_lower_ord[VEC_SIZE];
+        double sol_higher_ord[VEC_SIZE];
+
+        for (int j = 0; j < VEC_SIZE; j++)
         {
-            // use b and b_h weights to calculate error
-
-            for (int j = 0; j < VEC_SIZE; j++)
+            sol_higher_ord[j] = y_curr[j];
+            sol_lower_ord[j] = y_curr[j];
+            for (int stage = 0; stage < RK89_STAGES; stage++)
             {
-                err += pow(h * (rk89_b[i] - rk89_bh[i]) * k[i][j], 2);
+                // use b and b_h weights to calculate error
+                sol_higher_ord[j] += h * rk89_b[stage] * k[stage][j];
+                sol_lower_ord[j] += h * rk89_bh[stage] * k[stage][j];
             }
+            err += pow(sol_higher_ord[j] - sol_lower_ord[j], 2);
         }
-        err = sqrt(err) / VEC_SIZE;
-        printf("err: %f\n", err);
-
-        //// Step size adjustment
-        // Determine new step size
-        h_old = h;
-        h = 0.9 * h * pow(tol / err, 1.0 / 9.0); // next step size (based on ninth order local error)
+        err = sqrt(err);
 
         if (err < tol)
         {
-            /// step within tolerance, append solution
-            // check array size and increase size if needed
-            if ((step + 1) >= n)
+            // Accept step
+
+            // Check array size and increase size if needed
+            if ((step++) >= n)
             {
                 n *= 2; // double size of array and reallocate memory
                 result->y = (double(*)[VEC_SIZE])realloc(result->y, n * sizeof(double[VEC_SIZE]));
                 result->t = (double(*))realloc(result->t, n * sizeof(double));
             }
 
-            // Append to result
+            // Update t, y_curr to new state
+            t += h; // advance time
             for (int j = 0; j < VEC_SIZE; j++)
-            {
-                for (int r = 0; r < RK89_STAGES; r++)
-                    y_curr[j] += h_old * rk89_b[r] * k[r][j]; // Add all weights
-            }
+                y_curr[j] = sol_higher_ord[j];
+
+            // Update solution structure
+            result->t[step] = t;
             for (int j = 0; j < VEC_SIZE; j++)
-                result->y[step + 1][j] = y_curr[j]; // write (separated for vectorization)
-
-            step++;              // advance step
-            t += h_old;          // advance time
-            result->t[step] = t; // record time
-
-            // adjust timestep if needed to hit tf
-            if (t + h > tf)
-                h = tf - t;
+                result->y[step][j] = sol_higher_ord[j]; // write (separated for vectorization)
         }
         // Otherwise, retry step
-        // printf("t: %f, h: %f, err: %f\n", t, h, err);
+
+        //// Step size adjustment
+        // Determine new step size
+        h = 0.9 * h * pow(tol / err, 1.0 / 9.0); // next step size (based on ninth order local error)
+
+        // adjust timestep if needed to hit tf
+        if (t + h > tf)
+            h = tf - t;
+    }
+    // record # of steps after finish
+    result->n = step;
+
+    return result;
+}
+
+RKSolution *rk56(void (*f)(double, double[VEC_SIZE], double[VEC_SIZE]), double t0, double tf, double y0[VEC_SIZE], double h0, double tol)
+{
+    if (tf <= t0)
+        return NULL; // error case
+
+    ////// Initial estimate for n = number of rows in solution
+    int n = (int)((tf - t0) / h0);
+    int step = 0;
+
+    ////// Allocate result struct
+    RKSolution *result = (RKSolution *)malloc(sizeof(RKSolution));
+    result->y = (double(*)[6])malloc(n * sizeof(double[VEC_SIZE]));
+    result->t = (double(*))malloc(n * sizeof(double));
+
+    ////// Prepare Step variables
+    double h = h0;                   // initial stepsize
+    double t = t0;                   // intial time
+    double k[RK56_STAGES][VEC_SIZE]; // k values, containing derivatives at each stage
+    double y_stage[VEC_SIZE];        // used to evaluate derivative at each state
+    double y_curr[VEC_SIZE];         // solution at beginning of current step
+
+    // Init y0, t0 (step 0)
+    for (int j = 0; j < VEC_SIZE; j++)
+    {
+        result->y[0][j] = y0[j];
+        y_curr[j] = y0[j];
+    }
+    result->t[0] = t;
+
+    // Create Step Variables
+
+    double err; // magnitude of error, used for error estimate
+
+    // zero-out k
+    for (int stage = 0; stage < RK56_STAGES; stage++)
+        for (int j = 0; j < VEC_SIZE; j++)
+            k[stage][j] = 0;
+
+    /////// INTEGRATION STEPS
+    while (t - h <= tf)
+    {
+        // Evaluate derivative at stage 0
+        f(t, y_curr, k[0]);
+
+        // Evaluate derivatives at stages 1-8
+        for (int stage = 1; stage < RK56_STAGES; stage++)
+        {
+            //// Prepare input vector
+            for (int j = 0; j < VEC_SIZE; j++)
+            {
+                y_stage[j] = y_curr[j]; // take current sol
+                for (int w = 0; w < stage; w++)
+                    y_stage[j] += h * k[w][j] * rk56_a[stage][w]; // Add previous steps
+            }
+            f(t + h * rk56_c[stage], y_stage, k[stage]); // evaluate next k
+        }
+
+        // Calculate solution estimates
+        err = 0;
+        double sol_lower_ord[VEC_SIZE];
+        double sol_higher_ord[VEC_SIZE];
+
+        for (int j = 0; j < VEC_SIZE; j++)
+        {
+            sol_higher_ord[j] = y_curr[j];
+            sol_lower_ord[j] = y_curr[j];
+            for (int stage = 0; stage < RK56_STAGES; stage++)
+            {
+                // use b and b_h weights to calculate error
+                sol_higher_ord[j] += h * rk56_b[stage] * k[stage][j];
+                sol_lower_ord[j] += h * rk56_bh[stage] * k[stage][j];
+            }
+            err += pow(sol_higher_ord[j] - sol_lower_ord[j], 2);
+        }
+        err = sqrt(err);
+
+        if (err < tol)
+        {
+            // Accept step
+
+            // Check array size and increase size if needed
+            if ((step++) >= n)
+            {
+                n *= 2; // double size of array and reallocate memory
+                result->y = (double(*)[VEC_SIZE])realloc(result->y, n * sizeof(double[VEC_SIZE]));
+                result->t = (double(*))realloc(result->t, n * sizeof(double));
+            }
+
+            // Update t, y_curr to new state
+            t += h; // advance time
+            for (int j = 0; j < VEC_SIZE; j++)
+                y_curr[j] = sol_higher_ord[j];
+
+            // Update solution structure
+            result->t[step] = t;
+            for (int j = 0; j < VEC_SIZE; j++)
+                result->y[step][j] = sol_higher_ord[j]; // write (separated for vectorization)
+        }
+        // Otherwise, retry step
+
+        //// Step size adjustment
+        // Determine new step size
+        h = 0.9 * h * pow(tol / err, 1.0 / 9.0); // next step size (based on ninth order local error)
+
+        // adjust timestep if needed to hit tf
+        if (t + h > tf)
+            h = tf - t;
     }
     // record # of steps after finish
     result->n = step;
