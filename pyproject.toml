@@ -22,8 +22,7 @@ dynamic = ["version"]
 homepage = "https://github.com/itchono/cshanty"
 
 [tool.setuptools.packages.find]
-include = ["cshanty", "cshanty.*"]
-where = ["src"]
+include = ["cshanty"]
 
 [tool.setuptools_scm]
-write_to = "src/cshanty/_version.py"
+write_to = "cshanty/_version.py"
