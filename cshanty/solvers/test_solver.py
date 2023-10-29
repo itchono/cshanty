@@ -1,5 +1,6 @@
 from cshanty.backend import ffi, lib
 import numpy as np
+from matplotlib import pyplot as plt
 
 solution = lib.rk67(ffi.addressof(lib, "test_ode"), 0, 10, [1, 0, 0, 0, 0, 0], 5, 1e-5)
 print(solution.n)
