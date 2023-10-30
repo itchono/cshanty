@@ -2,8 +2,9 @@
 #define EQNS_OF_MOTION_H
 
 #include <math.h>
+#include "include/constants.h"
 
-void gauss_variational_eqns_mee(double t, double *y, double *dydt, double *f_app)
+void gauss_variational_eqns_mee(double t, double y[6], double dydt[6], double f_app[3])
 {
     // Assume we get a properly scaled version of p
     double p = y[0];
@@ -14,8 +15,6 @@ void gauss_variational_eqns_mee(double t, double *y, double *dydt, double *f_app
     double L = y[5];
 
     double q = 1 + f * cos(L) + g * sin(L);
-    const double mu = 3986e14;
-
     double leading_coeff = 1 / q * sqrt(p / mu);
 
     double pre_A[6][3] = {

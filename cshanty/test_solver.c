@@ -2,9 +2,18 @@
 #include <stdio.h>
 #include <math.h>
 
-void test_ode(double t, double *y, double *dydt)
+void test_ode(double t, double *y, double *dydt, bool *terminate)
 {
     dydt[0] = -y[0];
+
+    if (t > 3)
+    {
+        *terminate = true;
+    }
+    else
+    {
+        *terminate = false;
+    }
 }
 
 double analytic_solution(double t)
@@ -21,9 +30,9 @@ int main(int argc, char *argv[])
         printf("The argument supplied is %s\n", argv[1]);
     }
 
-    ODESolver solver = rk67;
+    AdpativeSolver solver = rk67;
 
-    RKSolution *sol = solver(test_ode, 0, 10, y0, 5, 1e-5);
+    RKSolution *sol = solver(test_ode, 0, 10, y0, 2, 1e-5);
     printf("n: %d\n", sol->n);
     printf("n_fev: %d\n", sol->n_fev);
     printf("n_step_fail: %d\n", sol->n_step_fail);
@@ -36,6 +45,7 @@ int main(int argc, char *argv[])
 
     free(sol->y);
     free(sol->t);
+    free(sol);
 
     printf("Freed.\n");
 }

@@ -3,9 +3,10 @@
 #include "include/eqns_of_motion.h"
 #include "include/solvers.h"
 
-void ode(double t, double *y, double *dydt)
+void ode(double t, double *y, double *dydt, bool *terminate)
 {
     double f_app[3] = {0, 0.001, 0};
+    *terminate = false;
     gauss_variational_eqns_mee(t, y, dydt, f_app);
 }
 
@@ -19,7 +20,7 @@ int main()
                     0,
                     0};
 
-    ODESolver solver = rk89;
+    AdaptiveSolver solver = rk89;
 
     RKSolution *sol = solver(ode, 0, 1e8, y0, 5, 1e-5);
 
@@ -35,6 +36,7 @@ int main()
 
     free(sol->y);
     free(sol->t);
+    free(sol);
 
     printf("Freed.\n");
 }
