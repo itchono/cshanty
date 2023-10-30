@@ -11,7 +11,7 @@ const double kappa_feathered = 1.58825; // 91 degrees
 const double pi = 3.1415926535897932384;
 
 const double sail_p = 9.12e-6;
-const double sail_sigma = 0.001;
+const double sail_sigma = 0.01;
 const double sail_eta = 0.85;
 
 #endif

@@ -8,20 +8,20 @@ void mee2cartesian(double p, double f, double g, double h, double k, double L, d
 {
     // formulation from
     // https://spsweb.fltops.jpl.nasa.gov/portaldataops/mpg/MPG_Docs/Source%20Docs/EquinoctalElements-modified.pdf
-    double alpha = sqrt(h * h - k * k);
-    double s = sqrt(1 + h * h + k * k);
+    double alpha_sq = h * h - k * k;
+    double s_sq = 1 + h * h + k * k;
     double q = 1 + f * cos(L) + g * sin(L);
     double r = p / q;
 
-    double pos_fac = r / (s * s);
-    pos_vel[0] = pos_fac * (cos(L) + (alpha * alpha) * cos(L) + 2 * h * k * sin(L));
-    pos_vel[1] = pos_fac * (sin(L) - (alpha * alpha) * sin(L) + 2 * h * k * cos(L));
+    double pos_fac = r / (s_sq);
+    pos_vel[0] = pos_fac * (cos(L) + alpha_sq * cos(L) + 2 * h * k * sin(L));
+    pos_vel[1] = pos_fac * (sin(L) - alpha_sq * sin(L) + 2 * h * k * cos(L));
     pos_vel[2] = pos_fac * (2 * (h * sin(L) - k * cos(L)));
 
-    double vel_fac = 1 / (s * s) * sqrt(mu / p);
+    double vel_fac = 1 / (s_sq)*sqrt(mu / p);
 
-    pos_vel[3] = vel_fac * (-(sin(L) + (alpha * alpha) * sin(L) - 2 * h * k * cos(L) + g - 2 * f * h * k + (alpha * alpha) * g));
-    pos_vel[4] = vel_fac * (-(-cos(L) + (alpha * alpha) * cos(L) + 2 * h * k * sin(L) - g + 2 * g * h * k + (alpha * alpha) * f));
+    pos_vel[3] = vel_fac * (-(sin(L) + alpha_sq * sin(L) - 2 * h * k * cos(L) + g - 2 * f * h * k + alpha_sq * g));
+    pos_vel[4] = vel_fac * (-(-cos(L) + alpha_sq * cos(L) + 2 * h * k * sin(L) - g + 2 * g * h * k + alpha_sq * f));
     pos_vel[5] = vel_fac * (2 * (h * cos(L) + k * sin(L) + f * h + g * k));
 }
 

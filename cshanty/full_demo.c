@@ -17,25 +17,35 @@ int main()
     y_target[2] = 0.5;
     y_target[3] = 0;
     y_target[4] = 0.3;
-    convergence_tol = 1e-3;
+    convergence_tol = 1e-2;
 
-    AdaptiveSolver solver = rk67;
+    FixedSolver solver = rk89_fixed;
 
-    RKSolution *sol = solver(slyga_ode, 0, 1e8, y0, 5, 1e-12);
+    RKSolution *sol = solver(slyga_ode, 0, 1e8, y0, 1e2);
 
     printf("n: %d\n", sol->n);
     printf("n_fev: %d\n", sol->n_fev);
     printf("n_step_fail: %d\n", sol->n_step_fail);
     printf("t_final: %f\n", sol->t[sol->n]);
+    printf("number of revolutions: %d\n", (int)(sol->y[sol->n][5] / (2 * pi)));
 
-    for (int i = 0; i < 6; i++)
+    FILE *fpt;
+
+    fpt = fopen("MyFile.csv", "w+");
+
+    for (int s = 0; s < sol->n; s++)
     {
-        if (i == 0)
+        fprintf(fpt, "t = %.4e; {", sol->t[s]);
+        for (int i = 0; i < 6; i++)
         {
-            sol->y[sol->n][i] *= r_earth;
-        }
+            if (i == 0)
+            {
+                sol->y[s][i] *= r_earth;
+            }
 
-        printf("y[%d] = %f\n", i, sol->y[sol->n][i]);
+            fprintf(fpt, "%.4e, ", sol->y[s][i]);
+        }
+        fprintf(fpt, "}\n");
     }
 
     free(sol->y);

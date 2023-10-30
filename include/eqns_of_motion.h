@@ -6,7 +6,7 @@
 
 void gauss_variational_eqns_mee(double t, double y[6], double dydt[6], double f_app[3])
 {
-    // Assume we get a properly scaled version of p
+    // Assume we get the actual value of p
     double p = y[0];
     double f = y[1];
     double g = y[2];

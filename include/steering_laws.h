@@ -43,6 +43,7 @@ void lyapunov_steering(double y[6], double y_tgt[5], double angles[2])
     // 3. Compute optimal steering angles
     // alpha
     angles[0] = atan2(-D2, -D1);
+    // beta
     angles[1] = atan2(-D3, sqrt(D1 * D1 + D2 * D2));
 }
 

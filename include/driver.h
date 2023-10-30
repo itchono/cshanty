@@ -51,24 +51,23 @@ void slyga_ode(double t, double y[6], double dydt[6], bool *halt)
     dydt[4] = y_p_unscaled[4];
     dydt[5] = y_p_unscaled[5];
 
-    // calculate steering loss
-    double err = 0;
-    for (int i = 0; i < 5; i++)
+    if (y[0] < 1 && y[0] == y[0])
     {
-        err += (y[i] - y_target[i]) * (y[i] - y_target[i]);
+        printf("plunged into the Earth (%f)\n", y[0]);
+        *halt = true;
     }
-    if (err < 0 || y[0] < 6378e3)
+    else
     {
-        printf("HOW?\n");
-    }
-    err = sqrt(err);
+        // calculate steering loss
+        double err = 0;
+        for (int i = 0; i < 5; i++)
+        {
+            err += (y[i] - y_target[i]) * (y[i] - y_target[i]);
+        }
+        err = sqrt(err);
 
-    if ((int)(t) % (int)(1e5) == 0)
-    {
-        printf("t = %.4e, err = %.4e\n", t, err);
+        *halt = (bool)(err < convergence_tol);
     }
-
-    *halt = (bool)(err < convergence_tol);
 }
 
 #endif
