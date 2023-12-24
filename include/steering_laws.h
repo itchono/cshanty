@@ -23,11 +23,11 @@ void approx_max_roc(double y[6], double maxroc[5])
 
     double q = 1 + f * cos(L) + g * sin(L);
 
-    maxroc[0] = 2 * p / q * sqrt(p / mu);
-    maxroc[1] = 2 * sqrt(p / mu); // approximations
-    maxroc[2] = 2 * sqrt(p / mu); // approximations
-    maxroc[3] = 1 / 2 * sqrt(p / mu) * (1 + h * h + k * k) / (sqrt(1 - g * g) + f);
-    maxroc[4] = 1 / 2 * sqrt(p / mu) * (1 + h * h + k * k) / (sqrt(1 - f * f) + g);
+    maxroc[0] = 2.0 * p / q * sqrt(p / mu);
+    maxroc[1] = 2.0 * sqrt(p / mu); // approximations
+    maxroc[2] = 2.0 * sqrt(p / mu); // approximations
+    maxroc[3] = 1.0 / 2.0 * sqrt(p / mu) * (1 + h * h + k * k) / (sqrt(1 - g * g) + f);
+    maxroc[4] = 1.0 / 2.0 * sqrt(p / mu) * (1 + h * h + k * k) / (sqrt(1 - f * f) + g);
 }
 
 void pe_penalty(double y[6], double pen_param, double rpmin, double *P, double dPdy[6])
@@ -36,7 +36,7 @@ void pe_penalty(double y[6], double pen_param, double rpmin, double *P, double d
     double f = y[1];
     double g = y[2];
 
-    double rp = p * (1 - sqrt(f * f + g * g)) / (1 - f * f - g * g);
+    double rp = p * (1.0 - sqrt(f * f + g * g)) / (1 - f * f - g * g);
 
     *P = exp(pen_param * (1 - rp / rpmin));
 

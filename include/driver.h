@@ -13,34 +13,18 @@
 void slyga_ode(double t, double y[6], double dydt[6], bool *halt, ConfigStruct *cfg)
 {
 
-    // scaling
-    double y_scaled[6] = {y[0] * r_earth,
-                          y[1],
-                          y[2],
-                          y[3],
-                          y[4],
-                          y[5]};
-
     double ideal_angles[2];
-    lyapunov_steering(t, y_scaled, cfg, ideal_angles);
+    lyapunov_steering(t, y, cfg, ideal_angles);
 
     double actual_angles[2];
-    ndf_heuristic(t, y_scaled, ideal_angles, actual_angles);
+    ndf_heuristic(t, y, ideal_angles, actual_angles);
 
     double accel_o[3];
-    sail_thrust(t, y_scaled, actual_angles, accel_o);
+    sail_thrust(t, y, actual_angles, accel_o);
 
     double accel_norm = vec_norm(accel_o); // do something with this later for delta-v
 
-    double y_p_unscaled[6];
-    gauss_variational_eqns_mee(t, y_scaled, y_p_unscaled, accel_o);
-
-    dydt[0] = y_p_unscaled[0] / r_earth;
-    dydt[1] = y_p_unscaled[1];
-    dydt[2] = y_p_unscaled[2];
-    dydt[3] = y_p_unscaled[3];
-    dydt[4] = y_p_unscaled[4];
-    dydt[5] = y_p_unscaled[5];
+    gauss_variational_eqns_mee(t, y, dydt, accel_o);
 
     printf("t = %.4e;\n", t);
 
@@ -65,6 +49,7 @@ void slyga_ode(double t, double y[6], double dydt[6], bool *halt, ConfigStruct *
 
 RKSolution *run_mission(ConfigStruct *cfg)
 {
+    // For now, run ODE unscaled
     ODESolver solver = *(cfg->solver);
     return solver(slyga_ode, cfg->t_span[0], cfg->t_span[1], cfg);
 }

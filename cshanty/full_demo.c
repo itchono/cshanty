@@ -6,13 +6,13 @@
 int main()
 {
     ConfigStruct cfg = {
-        .y0 = {20000e3 / r_earth,
+        .y0 = {20000e3,
                0.5,
                -0.2,
                0.5,
                0,
                0},
-        .y_target = {25000e3 / r_earth,
+        .y_target = {25000e3,
                      0.2,
                      0.5,
                      0,
@@ -21,14 +21,14 @@ int main()
         .propulsion_model = sail_thrust,
         .solver = rk89,
         .steering_law = lyapunov_steering,
-        .t_span = {0, 1e8},
+        .t_span = {0, 3.1e6},
         .ode_rel_tol = 1e-4,
         .ode_h0 = 1e2,
         .guidance_tol = 1e-2,
         .guidance_weights = {1, 1, 1, 1, 1},
-        .penalty_param = 1e-2,
-        .min_pe = 0.1,
-        .penalty_weight = 1e-2};
+        .penalty_param = 1,
+        .min_pe = 6878e3,
+        .penalty_weight = 1};
 
     RKSolution *sol = run_mission(&cfg);
 
@@ -47,11 +47,6 @@ int main()
         fprintf(fpt, "t = %.4e; {", sol->t[s]);
         for (int i = 0; i < 6; i++)
         {
-            if (i == 0)
-            {
-                sol->y[s][i] *= r_earth;
-            }
-
             fprintf(fpt, "%.4e, ", sol->y[s][i]);
         }
         fprintf(fpt, "}\n");
