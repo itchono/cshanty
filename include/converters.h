@@ -2,7 +2,7 @@
 #define CONVERTERS_H
 
 #include <math.h>
-#include "include/constants.h"
+#include "constants.h"
 
 void mee2cartesian(double p, double f, double g, double h, double k, double L, double pos_vel[6])
 {

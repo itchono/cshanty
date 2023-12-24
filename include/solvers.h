@@ -7,8 +7,8 @@
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include "include/solver_weights.h"
-#include "include/types.h"
+#include "solver_weights.h"
+#include "types.h"
 
 #define VEC_SIZE 6    // dimension of vector (kept static at 6 for orbit prop)
 #define MIN_STEP 1e-8 // minimum step size

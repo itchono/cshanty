@@ -2,12 +2,12 @@
 #define STEERING_LAWS_H
 
 #include <math.h>
-#include "include/constants.h"
-#include "include/rotations.h"
-#include "include/math_utils.h"
-#include "include/ephemeris.h"
-#include "include/types.h"
-#include "include/eqns_of_motion.h"
+#include "constants.h"
+#include "rotations.h"
+#include "math_utils.h"
+#include "ephemeris.h"
+#include "types.h"
+#include "eqns_of_motion.h"
 
 void approx_max_roc(double y[6], double maxroc[5])
 /**

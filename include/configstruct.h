@@ -1,7 +1,7 @@
 #ifndef CONFIGSTRUCT_H
 #define CONFIGSTRUCT_H
 
-#include "include/solvers.h"
+#include "solvers.h"
 
 typedef struct ConfigStruct
 {

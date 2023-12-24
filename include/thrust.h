@@ -1,9 +1,9 @@
 #ifndef THRUST_H
 #define THRUST_H
 
-#include "include/converters.h"
-#include "include/rotations.h"
-#include "include/ephemeris.h"
+#include "converters.h"
+#include "rotations.h"
+#include "ephemeris.h"
 
 void sail_thrust(double t, double y[6], double angles[2], double acceleration[3])
 {

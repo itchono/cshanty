@@ -2,7 +2,7 @@
 #define EQNS_OF_MOTION_H
 
 #include <math.h>
-#include "include/constants.h"
+#include "constants.h"
 
 void gve_coeffs(double y[6], double A[6][3])
 /**

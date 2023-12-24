@@ -2,11 +2,11 @@
 #define DRIVER_H
 
 #include <stdbool.h>
-#include "include/steering_laws.h"
-#include "include/constants.h"
-#include "include/eqns_of_motion.h"
-#include "include/thrust.h"
-#include "include/types.h"
+#include "steering_laws.h"
+#include "constants.h"
+#include "eqns_of_motion.h"
+#include "thrust.h"
+#include "types.h"
 
 #include <stdio.h>
 

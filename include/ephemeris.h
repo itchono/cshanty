@@ -2,7 +2,7 @@
 #define EPHEMERIS_H
 
 #include <math.h>
-#include "include/constants.h"
+#include "constants.h"
 
 double sun_angle(double t)
 {

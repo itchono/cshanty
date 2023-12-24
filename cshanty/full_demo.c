@@ -1,7 +1,7 @@
 #include <stdio.h>
-#include "include/driver.h"
-#include "include/constants.h"
-#include "include/solvers.h"
+#include "driver.h"
+#include "constants.h"
+#include "solvers.h"
 
 int main()
 {
