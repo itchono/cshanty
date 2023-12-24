@@ -21,7 +21,7 @@ int main()
         .propulsion_model = sail_thrust,
         .solver = rk89,
         .steering_law = lyapunov_steering,
-        .t_span = {0, 3.1e6},
+        .t_span = {0, 3e7},
         .ode_rel_tol = 1e-4,
         .ode_h0 = 1e2,
         .guidance_tol = 1e-2,

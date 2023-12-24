@@ -35,7 +35,7 @@ void sail_thrust(double t, double y[6], double angles[2], double acceleration[3]
 
     // TODO add eclipse
 
-    double efficiency = 2 * sail_p * sail_eta / sail_sigma;
+    double efficiency = 2.0 * sail_p * sail_eta / sail_sigma;
 
     double thrust_sign;
     if (c_cone_ang > 0)

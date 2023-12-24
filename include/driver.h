@@ -26,8 +26,6 @@ void slyga_ode(double t, double y[6], double dydt[6], bool *halt, ConfigStruct *
 
     gauss_variational_eqns_mee(t, y, dydt, accel_o);
 
-    printf("t = %.4e;\n", t);
-
     if (y[0] < 1 && y[0] == y[0])
     {
         printf("plunged into the Earth (%f)\n", y[0]);

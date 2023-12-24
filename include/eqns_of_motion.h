@@ -18,7 +18,7 @@ void gve_coeffs(double y[6], double A[6][3])
     double L = y[5];
 
     double q = 1 + f * cos(L) + g * sin(L);
-    double leading_coeff = 1 / q * sqrt(p / mu);
+    double leading_coeff = 1.0 / q * sqrt(p / mu);
 
     double pre_A[6][3] = {
         {0, 2 * p, 0},
@@ -40,7 +40,7 @@ void gve_coeffs(double y[6], double A[6][3])
     {
         for (int j = 0; j < 3; j++)
         {
-            A[i][j] = leading_coeff * pre_A[i + 1][j];
+            A[i][j] = leading_coeff * pre_A[i][j];
         }
     }
 }

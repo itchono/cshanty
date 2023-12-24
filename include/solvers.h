@@ -136,10 +136,10 @@
         /* Determine new step size (based on nth order local error) */                        \
         /* prevent nonsensical timestep */                                                    \
         double fac = 0.9 * pow(cfg->ode_rel_tol / err, 1.0 / ((double)SOLN_ORD));             \
-        if (fac > 2)                                                                          \
-            fac = 2;                                                                          \
-        if (fac < 0.5)                                                                        \
-            fac = 0.5;                                                                        \
+        if (fac > 5)                                                                          \
+            fac = 5;                                                                          \
+        if (fac < 0.2)                                                                        \
+            fac = 0.2;                                                                        \
         h *= fac;                                                                             \
                                                                                               \
         /* adjust timestep if needed to hit tf */                                             \
