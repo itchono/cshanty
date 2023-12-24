@@ -21,14 +21,14 @@ int main()
         .propulsion_model = sail_thrust,
         .solver = rk89,
         .steering_law = lyapunov_steering,
-        .t_span = {0, 3e7},
+        .t_span = {0, 1e8},
         .ode_rel_tol = 1e-4,
         .ode_h0 = 1e2,
-        .guidance_tol = 1e-2,
+        .guidance_tol = 5e-2,
         .guidance_weights = {1, 1, 1, 1, 1},
         .penalty_param = 1,
         .min_pe = 6878e3,
-        .penalty_weight = 1};
+        .penalty_weight = 0};
 
     RKSolution *sol = run_mission(&cfg);
 

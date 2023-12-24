@@ -35,9 +35,10 @@ void slyga_ode(double t, double y[6], double dydt[6], bool *halt, ConfigStruct *
     {
         // calculate steering loss
         double err = 0;
+        double S[5] = {1. / 6378e3, 1, 1, 1, 1};
         for (int i = 0; i < 5; i++)
         {
-            err += (y[i] - cfg->y_target[i]) * (y[i] - cfg->y_target[i]);
+            err += S[i] * (y[i] - cfg->y_target[i]) * (y[i] - cfg->y_target[i]);
         }
         err = sqrt(err);
 
