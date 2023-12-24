@@ -2,11 +2,14 @@
 #define EQNS_OF_MOTION_H
 
 #include <math.h>
-#include "include/constants.h"
+#include "constants.h"
 
-void gauss_variational_eqns_mee(double t, double y[6], double dydt[6], double f_app[3])
+void gve_coeffs(double y[6], double A[6][3])
+/**
+ * @brief Calculate the coefficients of the Gauss variational equations
+ *
+ */
 {
-    // Assume we get the actual value of p
     double p = y[0];
     double f = y[1];
     double g = y[2];
@@ -15,7 +18,7 @@ void gauss_variational_eqns_mee(double t, double y[6], double dydt[6], double f_
     double L = y[5];
 
     double q = 1 + f * cos(L) + g * sin(L);
-    double leading_coeff = 1 / q * sqrt(p / mu);
+    double leading_coeff = 1.0 / q * sqrt(p / mu);
 
     double pre_A[6][3] = {
         {0, 2 * p, 0},
@@ -33,6 +36,31 @@ void gauss_variational_eqns_mee(double t, double y[6], double dydt[6], double f_
          0,
          h * sin(L) - k * cos(L)}};
 
+    for (int i = 0; i < 6; i++)
+    {
+        for (int j = 0; j < 3; j++)
+        {
+            A[i][j] = leading_coeff * pre_A[i][j];
+        }
+    }
+}
+
+void gauss_variational_eqns_mee(double t, double y[6], double dydt[6], double f_app[3])
+{
+    // Assume we get the unscaled value of p (i.e. in meters)
+
+    double A[6][3];
+    gve_coeffs(y, A);
+
+    double p = y[0];
+    double f = y[1];
+    double g = y[2];
+    double h = y[3];
+    double k = y[4];
+    double L = y[5];
+
+    double q = 1 + f * cos(L) + g * sin(L);
+
     double b[6] = {0,
                    0,
                    0,
@@ -40,13 +68,14 @@ void gauss_variational_eqns_mee(double t, double y[6], double dydt[6], double f_
                    0,
                    q * q * sqrt(mu * p) / (p * p)};
 
+    // y' = A*x + b
     for (int i = 0; i < 6; i++)
     {
         dydt[i] = b[i];
 
         for (int j = 0; j < 3; j++)
         {
-            dydt[i] += leading_coeff * pre_A[i][j] * f_app[j];
+            dydt[i] += A[i][j] * f_app[j];
         }
     }
 }

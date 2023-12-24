@@ -11,11 +11,11 @@ build-backend = "setuptools.build_meta"
 name = "cshanty"
 description = "Solar Sail Guidance"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [{ name = "Mingde Yin", email = "mdsuper@hotmail.com" }]
 maintainers = [{ name = "Mingde Yin", email = "mdsuper@hotmail.com" }]
-dependencies = ["cffi >= 1.16.0"]
+dependencies = ["cffi >= 1.16.0", "numpy >= 1.26", "matplotlib >= 3.8"]
 dynamic = ["version"]
 
 [project.urls]

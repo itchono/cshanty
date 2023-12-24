@@ -2,56 +2,51 @@
 #define DRIVER_H
 
 #include <stdbool.h>
-#include "include/steering_laws.h"
-#include "include/constants.h"
-#include "include/eqns_of_motion.h"
-#include "include/thrust.h"
+#include "steering_laws.h"
+#include "constants.h"
+#include "eqns_of_motion.h"
+#include "thrust.h"
+#include "types.h"
 
 #include <stdio.h>
 
-extern double y_target[5];
-extern double convergence_tol;
-
-double convergence_tol = 0;
-double y_target[5] = {0, 0, 0, 0, 0};
-
-void slyga_ode(double t, double y[6], double dydt[6], bool *halt)
+void slyga_ode(double t, double y_sc[6], double dydt[6], bool *halt, ConfigStruct *cfg)
 {
-
     // scaling
-    double y_scaled[6] = {y[0] * r_earth,
-                          y[1],
-                          y[2],
-                          y[3],
-                          y[4],
-                          y[5]};
-    double y_tgt_scaled[6] = {y_target[0] * r_earth,
-                              y_target[1],
-                              y_target[2],
-                              y_target[3],
-                              y_target[4],
-                              y_target[5]};
+    double y[6];
+    double S_ode[6] = {1. / cfg->y_target[0], 1, 1, 1, 1, 1};
+    for (int i = 0; i < 6; i++)
+    {
+        y[i] = y_sc[i] / S_ode[i];
+    }
+
+    if ((fabs(y[1]) > 1) || (fabs(y[2]) > 1))
+    {
+        // eccentricity is greater than 1
+        printf("ECCENTRICITY > 1: y[1] = %f, y[2] = %f\n", y[1], y[2]);
+        *halt = true;
+    }
 
     double ideal_angles[2];
-    lyapunov_steering(y_scaled, y_tgt_scaled, ideal_angles);
+    lyapunov_steering(t, y, cfg, ideal_angles);
 
     double actual_angles[2];
-    ndf_heuristic(t, y_scaled, ideal_angles, actual_angles);
+    ndf_heuristic(t, y, ideal_angles, actual_angles);
 
     double accel_o[3];
-    sail_thrust(t, y_scaled, actual_angles, accel_o);
+    sail_thrust(t, y, actual_angles, accel_o);
 
-    double y_p_unscaled[6];
-    gauss_variational_eqns_mee(t, y_scaled, y_p_unscaled, accel_o);
+    double accel_norm = vec_norm(accel_o); // do something with this later for delta-v
 
-    dydt[0] = y_p_unscaled[0] / r_earth;
-    dydt[1] = y_p_unscaled[1];
-    dydt[2] = y_p_unscaled[2];
-    dydt[3] = y_p_unscaled[3];
-    dydt[4] = y_p_unscaled[4];
-    dydt[5] = y_p_unscaled[5];
+    gauss_variational_eqns_mee(t, y, dydt, accel_o);
 
-    if (y[0] < 1 && y[0] == y[0])
+    // scale dydt
+    for (int i = 0; i < 6; i++)
+    {
+        dydt[i] *= S_ode[i];
+    }
+
+    if (y[0] < r_earth && y[0] == y[0])
     {
         printf("plunged into the Earth (%f)\n", y[0]);
         *halt = true;
@@ -60,14 +55,38 @@ void slyga_ode(double t, double y[6], double dydt[6], bool *halt)
     {
         // calculate steering loss
         double err = 0;
+        double S_guidance[5] = {1. / r_earth, 1, 1, 1, 1};
         for (int i = 0; i < 5; i++)
         {
-            err += (y[i] - y_target[i]) * (y[i] - y_target[i]);
+            err += S_guidance[i] * (y[i] - cfg->y_target[i]) * (y[i] - cfg->y_target[i]);
         }
         err = sqrt(err);
 
-        *halt = (bool)(err < convergence_tol);
+        *halt = (bool)(err < cfg->guidance_tol) | *halt;
     }
+    if (accel_norm != accel_norm)
+    {
+        printf("accel_norm is NaN\n");
+        *halt = true;
+    }
+}
+
+RKSolution *run_mission(ConfigStruct *cfg)
+{
+    ODESolver solver = *(cfg->solver);
+
+    // pre-scale y0 by y_target
+    cfg->y0[0] /= cfg->y_target[0];
+
+    RKSolution *sol = solver(slyga_ode, cfg->t_span[0], cfg->t_span[1], cfg);
+
+    // post-scale y by y_target
+    for (int i = 0; i < sol->n; i++)
+    {
+        sol->y[i][0] *= cfg->y_target[0];
+    }
+
+    return sol;
 }
 
 #endif

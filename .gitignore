@@ -168,3 +168,10 @@ cshanty/_version.py
 # CFFI Code
 cshanty/*.o
 cshanty/backend.c
+
+# MSVC build
+Release/
+*.exe
+
+# Data
+*.csv

@@ -1,8 +1,8 @@
 #ifndef ROTATIONS_H
 #define ROTATIONS_H
 
-#include "include/converters.h"
-#include "include/math_utils.h"
+#include "converters.h"
+#include "math_utils.h"
 
 void rot_inertial_LVLH(double p, double f, double g, double h, double k, double L, double CIO[3][3])
 {

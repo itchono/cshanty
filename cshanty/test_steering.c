@@ -1,5 +1,5 @@
-#include "include/steering_laws.h"
-#include "include/driver.h"
+#include "steering_laws.h"
+#include "driver.h"
 #include <stdio.h>
 
 int main()
@@ -19,7 +19,7 @@ int main()
 
     double ideal_angles[2];
 
-    lyapunov_steering(y0, y_tgt, ideal_angles);
+    lyapunov_steering(0, y0, y_tgt, ideal_angles);
 
     double actual_angles[2];
     ndf_heuristic(0, y0, ideal_angles, actual_angles);
