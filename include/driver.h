@@ -10,13 +10,20 @@
 
 #include <stdio.h>
 
-void slyga_ode(double t, double y[6], double dydt[6], bool *halt, ConfigStruct *cfg)
+void slyga_ode(double t, double y_sc[6], double dydt[6], bool *halt, ConfigStruct *cfg)
 {
+    // scaling
+    double y[6];
+    double S_ode[6] = {1. / cfg->y_target[0], 1, 1, 1, 1, 1};
+    for (int i = 0; i < 6; i++)
+    {
+        y[i] = y_sc[i] / S_ode[i];
+    }
 
     if ((fabs(y[1]) > 1) || (fabs(y[2]) > 1))
     {
         // eccentricity is greater than 1
-        printf("y[1] = %f, y[2] = %f\n", y[1], y[2]);
+        printf("ECCENTRICITY > 1: y[1] = %f, y[2] = %f\n", y[1], y[2]);
         *halt = true;
     }
 
@@ -33,7 +40,13 @@ void slyga_ode(double t, double y[6], double dydt[6], bool *halt, ConfigStruct *
 
     gauss_variational_eqns_mee(t, y, dydt, accel_o);
 
-    if (y[0] < 1 && y[0] == y[0])
+    // scale dydt
+    for (int i = 0; i < 6; i++)
+    {
+        dydt[i] *= S_ode[i];
+    }
+
+    if (y[0] < r_earth && y[0] == y[0])
     {
         printf("plunged into the Earth (%f)\n", y[0]);
         *halt = true;
@@ -42,14 +55,14 @@ void slyga_ode(double t, double y[6], double dydt[6], bool *halt, ConfigStruct *
     {
         // calculate steering loss
         double err = 0;
-        double S[5] = {1. / 6378e3, 1, 1, 1, 1};
+        double S_guidance[5] = {1. / r_earth, 1, 1, 1, 1};
         for (int i = 0; i < 5; i++)
         {
-            err += S[i] * (y[i] - cfg->y_target[i]) * (y[i] - cfg->y_target[i]);
+            err += S_guidance[i] * (y[i] - cfg->y_target[i]) * (y[i] - cfg->y_target[i]);
         }
         err = sqrt(err);
 
-        *halt = (bool)(err < cfg->guidance_tol);
+        *halt = (bool)(err < cfg->guidance_tol) | *halt;
     }
     if (accel_norm != accel_norm)
     {
@@ -60,9 +73,20 @@ void slyga_ode(double t, double y[6], double dydt[6], bool *halt, ConfigStruct *
 
 RKSolution *run_mission(ConfigStruct *cfg)
 {
-    // For now, run ODE unscaled
     ODESolver solver = *(cfg->solver);
-    return solver(slyga_ode, cfg->t_span[0], cfg->t_span[1], cfg);
+
+    // pre-scale y0 by y_target
+    cfg->y0[0] /= cfg->y_target[0];
+
+    RKSolution *sol = solver(slyga_ode, cfg->t_span[0], cfg->t_span[1], cfg);
+
+    // post-scale y by y_target
+    for (int i = 0; i < sol->n; i++)
+    {
+        sol->y[i][0] *= cfg->y_target[0];
+    }
+
+    return sol;
 }
 
 #endif

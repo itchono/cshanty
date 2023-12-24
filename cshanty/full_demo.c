@@ -22,7 +22,7 @@ int main()
         .solver = rk89,
         .steering_law = lyapunov_steering,
         .t_span = {0, 1e8},
-        .ode_rel_tol = 1e-1, // accurate to 0.1 m
+        .ode_rel_tol = 1e-6,
         .ode_h0 = 1e2,
         .guidance_tol = 5e-2,
         .guidance_weights = {1, 1, 1, 1, 1},

@@ -48,7 +48,7 @@
     /* Create Step Variables */                                                               \
                                                                                               \
     double err; /* magnitude of error, used for error estimate */                             \
-    bool halt;                                                                                \
+    bool halt = false;                                                                        \
                                                                                               \
     /* zero-out k */                                                                          \
     for (int stage = 0; stage < NUM_STAGES; stage++)                                          \
@@ -196,7 +196,7 @@
                                                                                               \
     /* Create Step Variables */                                                               \
                                                                                               \
-    bool halt;                                                                                \
+    bool halt = false;                                                                        \
                                                                                               \
     /* zero-out k */                                                                          \
     for (int stage = 0; stage < NUM_STAGES; stage++)                                          \
