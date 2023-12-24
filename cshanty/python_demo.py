@@ -1,39 +1,41 @@
-from cshanty.backend import ffi, lib
+from cshanty.wrapper import (
+    ConfigStruct,
+    ODESolver,
+    SteeringLaw,
+    PropulsionModel,
+    run_mission,
+)
 import numpy as np
 from matplotlib import pyplot as plt
 
-# construct a ConfigStruct
-cfg = ffi.new("ConfigStruct *")
-cfg.y0 = ffi.new("double[6]", [20000e3, 0.5, -0.2, 0.5, 0, 0])
-cfg.y_target = ffi.new("double[6]", [25000e3, 0.2, 0.5, 0, 0.3, 0])
-cfg.propulsion_model = ffi.addressof(lib, "sail_thrust")
-cfg.solver = ffi.addressof(lib, "rk89")
-cfg.steering_law = ffi.addressof(lib, "lyapunov_steering")
-cfg.t_span = ffi.new("double[2]", [0, 1e8])
-cfg.ode_rel_tol = 1e-6
-cfg.ode_h0 = 1e2
-cfg.guidance_tol = 3e-2
-cfg.guidance_weights = ffi.new("double[5]", [5, 1, 1, 1, 1])
-cfg.penalty_param = 1
-cfg.min_pe = 6878e3
-cfg.penalty_weight = 0
+# construct mission case
+cfg = ConfigStruct(
+    y0=np.array([20000e3, 0.5, -0.2, 0.5, 0, 0]),
+    y_target=np.array([25000e3, 0.2, 0.5, 0, 0.3, 0]),
+    propulsion_model=PropulsionModel.SAIL_THRUST,
+    solver=ODESolver.RK89,
+    steering_law=SteeringLaw.LYAPUNOV,
+    t_span=(0, 1e8),
+    ode_rel_tol=1e-6,
+    ode_h0=1e2,
+    guidance_tol=3e-2,
+    guidance_weights=np.array([5, 1, 1, 1, 1]),
+    penalty_param=1,
+    min_pe=6878e3,
+    penalty_weight=0,
+)
 
 # run the mission
-sol = lib.run_mission(cfg)
-
-# copy the solution to a numpy array
-t = np.frombuffer(ffi.buffer(sol.t, sol.n * ffi.sizeof("double")), dtype=np.float64)
-y = np.frombuffer(
-    ffi.buffer(sol.y, sol.n * 6 * ffi.sizeof("double")), dtype=np.float64
-).reshape((sol.n, 6))
+sol = run_mission(cfg)
+t = sol.t
+y = sol.y
 
 # print stats
 print(f"n: {sol.n}")
 print(f"n_fev: {sol.n_fev}")
 print(f"n_step_fail: {sol.n_step_fail}")
-print(f"t_final: {t[-1]}")
-print(f"Num Revolutions: {y[-1, 5] / (2 * np.pi):.0f}")
-
+print(f"t_final: {sol.t[-1]}")
+print(f"Num Revolutions: {sol.y[-1, 5] / (2 * np.pi):.0f}")
 
 # plots
 plt.figure()
@@ -55,11 +57,3 @@ plt.axhline(cfg.y_target[4], color="k", linestyle="--", label="k_target")
 
 plt.savefig("python_demo.png")
 plt.show()
-
-# free the memory allocated by C
-lib.free(sol.t)
-print("freed sol.t")
-lib.free(sol.y)
-print("freed sol.y")
-lib.free(sol)
-print("freed sol")
