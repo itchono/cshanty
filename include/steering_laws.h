@@ -3,15 +3,17 @@
 
 #include <math.h>
 #include "include/constants.h"
-#include "rotations.h"
-#include "math_utils.h"
-#include "ephemeris.h"
+#include "include/rotations.h"
+#include "include/math_utils.h"
+#include "include/ephemeris.h"
+#include "include/types.h"
+#include "include/eqns_of_motion.h"
 
-void lyapunov_steering(double y[6], double y_tgt[5], double angles[2])
+void approx_max_roc(double y[6], double maxroc[5])
+/**
+ * @brief Approximate maximum rates of change of each element across all steering angles and values of L.
+ */
 {
-    // 1. Unpack vectors
-
-    // Assume we get a properly scaled version of p
     double p = y[0];
     double f = y[1];
     double g = y[2];
@@ -19,31 +21,86 @@ void lyapunov_steering(double y[6], double y_tgt[5], double angles[2])
     double k = y[4];
     double L = y[5];
 
-    double p_hat = y_tgt[0];
-    double f_hat = y_tgt[1];
-    double g_hat = y_tgt[2];
-    double h_hat = y_tgt[3];
-    double k_hat = y_tgt[4];
-
-    // 2. Compute Di factors
-
     double q = 1 + f * cos(L) + g * sin(L);
 
-    // Scale down p by Earth radius
-    double D1 = 2 * (p - p_hat) / r_earth +
-                (f - f_hat) * ((q + 1) / q * cos(L) + f / q) +
-                (g - g_hat) * ((q + 1) / q * sin(L) + g / q);
-    double D2 = (f - f_hat) * sin(L) -
-                (g - g_hat) * cos(L);
-    double D3 = -g / q * (f - f_hat) * (h * sin(L) - k * cos(L)) +
-                f / q * (g - g_hat) * (h * sin(L) - k * cos(L)) +
-                2 * (sqrt(1 - g * g) + f) / q * cos(L) * (h - h_hat) +
-                2 * (sqrt(1 - f * f) + g) / q * sin(L) * (k - k_hat);
+    maxroc[0] = 2 * p / q * sqrt(p / mu);
+    maxroc[1] = 2 * sqrt(p / mu); // approximations
+    maxroc[2] = 2 * sqrt(p / mu); // approximations
+    maxroc[3] = 1 / 2 * sqrt(p / mu) * (1 + h * h + k * k) / (sqrt(1 - g * g) + f);
+    maxroc[4] = 1 / 2 * sqrt(p / mu) * (1 + h * h + k * k) / (sqrt(1 - f * f) + g);
+}
 
-    // 3. Compute optimal steering angles
-    // alpha
+void pe_penalty(double y[6], double pen_param, double rpmin, double *P, double dPdy[6])
+{
+    double p = y[0];
+    double f = y[1];
+    double g = y[2];
+
+    double rp = p * (1 - sqrt(f * f + g * g)) / (1 - f * f - g * g);
+
+    *P = exp(pen_param * (1 - rp / rpmin));
+
+    dPdy[0] = (f * pen_param * p * exp(-pen_param * (p / (rpmin * (sqrt(f * f + g * g) + 1.0)) - 1.0)) * 1.0 / ((sqrt(f * f + g * g) + 1.0) * (sqrt(f * f + g * g) + 1.0)) * 1.0 / sqrt(f * f + g * g)) / rpmin;
+    dPdy[1] = (g * pen_param * p * exp(-pen_param * (p / (rpmin * (sqrt(f * f + g * g) + 1.0)) - 1.0)) * 1.0 / ((sqrt(f * f + g * g) + 1.0) * (sqrt(f * f + g * g) + 1.0)) * 1.0 / sqrt(f * f + g * g)) / rpmin;
+    dPdy[2] = -(pen_param * exp(-pen_param * (p / (rpmin * (sqrt(f * f + g * g) + 1.0)) - 1.0))) / (rpmin * (sqrt(f * f + g * g) + 1.0));
+    dPdy[3] = 0.0;
+    dPdy[4] = 0.0;
+    dPdy[5] = 0.0;
+}
+
+void lyapunov_steering(double t, double y[6], ConfigStruct *cfg, double angles[2])
+{
+    double S[5] = {1. / 6378e3, 1, 1, 1, 1};
+    double A[6][3];
+    gve_coeffs(y, A);
+
+    double d_oe_max[5];
+    approx_max_roc(y, d_oe_max);
+
+    double oe[5] = {y[0], y[1], y[2], y[3], y[4]};
+    double oe_hat[5] = {cfg->y_target[0], cfg->y_target[1], cfg->y_target[2], cfg->y_target[3], cfg->y_target[4]};
+
+    double P;
+    double dPdoe[5];
+    pe_penalty(y, cfg->penalty_param, cfg->min_pe, &P, dPdoe);
+
+    double w_p = cfg->penalty_weight;
+
+    double Xi[5]; // 5 x 1 vector
+    for (int i = 0; i < 5; i++)
+    {
+        double Xi_penalty = dPdoe[i] * ((oe[i] - oe_hat[i]) / d_oe_max[i] * (oe[i] - oe_hat[i]) / d_oe_max[i]);
+        double Xi_classic = 2 * (oe[i] - oe_hat[i]) / d_oe_max[i];
+
+        Xi[i] = cfg->guidance_weights[i] * S[i] * (w_p * Xi_penalty + (1 + w_p * P) * Xi_classic);
+    }
+
+    double A_T[3][5]; // 3 x 5 matrix
+    for (int i = 0; i < 5; i++)
+    {
+        // Take the first 5 rows of A and transpose them
+        A_T[0][i] = A[i][0];
+        A_T[1][i] = A[i][1];
+        A_T[2][i] = A[i][2];
+    }
+
+    // final result is 3 x 1 vector achieved by A_T * Xi
+    double d_Gamma_d_F[3];
+    for (int i = 0; i < 3; i++)
+    {
+        d_Gamma_d_F[i] = 0;
+        for (int j = 0; j < 5; j++)
+        {
+            d_Gamma_d_F[i] += A_T[i][j] * Xi[j];
+        }
+    }
+
+    // GVE ordering is r, t, n; D1-3 is in order t, r, n
+    double D1 = d_Gamma_d_F[1];
+    double D2 = d_Gamma_d_F[0];
+    double D3 = d_Gamma_d_F[2];
+
     angles[0] = atan2(-D2, -D1);
-    // beta
     angles[1] = atan2(-D3, sqrt(D1 * D1 + D2 * D2));
 }
 

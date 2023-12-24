@@ -5,23 +5,32 @@
 
 int main()
 {
-    double y0[6] = {20000e3 / r_earth,
-                    0.5,
-                    -0.2,
-                    0.5,
-                    0,
-                    0};
+    ConfigStruct cfg = {
+        .y0 = {20000e3 / r_earth,
+               0.5,
+               -0.2,
+               0.5,
+               0,
+               0},
+        .y_target = {25000e3 / r_earth,
+                     0.2,
+                     0.5,
+                     0,
+                     0.3,
+                     0},
+        .propulsion_model = sail_thrust,
+        .solver = rk89,
+        .steering_law = lyapunov_steering,
+        .t_span = {0, 1e8},
+        .ode_rel_tol = 1e-4,
+        .ode_h0 = 1e2,
+        .guidance_tol = 1e-2,
+        .guidance_weights = {1, 1, 1, 1, 1},
+        .penalty_param = 1e-2,
+        .min_pe = 0.1,
+        .penalty_weight = 1e-2};
 
-    y_target[0] = 25000e3 / r_earth;
-    y_target[1] = 0.2;
-    y_target[2] = 0.5;
-    y_target[3] = 0;
-    y_target[4] = 0.3;
-    convergence_tol = 1e-2;
-
-    FixedSolver solver = rk89_fixed;
-
-    RKSolution *sol = solver(slyga_ode, 0, 1e8, y0, 1e2);
+    RKSolution *sol = run_mission(&cfg);
 
     printf("n: %d\n", sol->n);
     printf("n_fev: %d\n", sol->n_fev);
@@ -48,9 +57,11 @@ int main()
         fprintf(fpt, "}\n");
     }
 
-    free(sol->y);
-    free(sol->t);
-    free(sol);
+    fclose(fpt);
 
-    printf("Freed.\n");
+    // free stuff
+    free(sol->t);
+    free(sol->y);
+    free(sol);
+    printf("done\n");
 }

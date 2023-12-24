@@ -14,7 +14,7 @@ typedef struct RKSolution
     int n_step_fail;       // number of failed steps
 } RKSolution;
 
-typedef RKSolution(*(*ODESolver)(void(double, double *, double *), double, double, double *, double, double));
+typedef RKSolution(*(*AdaptiveSolver)(void(double, double *, double *, bool *), double, double, double *, double, double));
 void free(void* ptr); // free memory allocated by C code
 
 RKSolution *rk89(void (*f)(double, double[6], double[6]), double t0, double tf, double y0[6], double h0, double tol);

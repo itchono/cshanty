@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
         printf("The argument supplied is %s\n", argv[1]);
     }
 
-    AdpativeSolver solver = rk67;
+    AdaptiveSolver solver = rk56;
 
     RKSolution *sol = solver(test_ode, 0, 10, y0, 2, 1e-5);
     printf("n: %d\n", sol->n);
