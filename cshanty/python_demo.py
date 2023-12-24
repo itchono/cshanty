@@ -19,7 +19,7 @@ cfg = ConfigStruct(
     ode_rel_tol=1e-6,
     ode_h0=1e2,
     guidance_tol=3e-2,
-    guidance_weights=np.array([5, 1, 1, 1, 1]),
+    guidance_weights=np.array([1, 1, 1, 1, 1]),
     penalty_param=1,
     min_pe=6878e3,
     penalty_weight=0,
@@ -39,17 +39,17 @@ print(f"Num Revolutions: {sol.y[-1, 5] / (2 * np.pi):.0f}")
 
 # plots
 plt.figure()
-plt.subplot(131)
+plt.subplot(311)
 plt.plot(t, y[:, 0] / 1e3, label="p")
 plt.axhline(cfg.y_target[0] / 1e3, color="k", linestyle="--", label="p_target")
 
-plt.subplot(132)
+plt.subplot(312)
 plt.plot(t, y[:, 1], label="f")
 plt.plot(t, y[:, 2], label="g")
 plt.axhline(cfg.y_target[1], color="k", linestyle="--", label="f_target")
 plt.axhline(cfg.y_target[2], color="k", linestyle="--", label="g_target")
 
-plt.subplot(133)
+plt.subplot(313)
 plt.plot(t, y[:, 3], label="h")
 plt.plot(t, y[:, 4], label="k")
 plt.axhline(cfg.y_target[3], color="k", linestyle="--", label="h_target")
