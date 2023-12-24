@@ -151,7 +151,7 @@
             h = MIN_STEP;                                                                     \
     }                                                                                         \
     /* record # of steps after finish */                                                      \
-    result->n = step;                                                                         \
+    result->n = step + 1;                                                                     \
     if (halt)                                                                                 \
     {                                                                                         \
         printf("CONVERGED!\n");                                                               \

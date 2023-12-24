@@ -100,6 +100,15 @@ void lyapunov_steering(double t, double y[6], ConfigStruct *cfg, double angles[2
     double D2 = d_Gamma_d_F[0];
     double D3 = d_Gamma_d_F[2];
 
+    // NAN check
+    if (D1 != D1 || D2 != D2 || D3 != D3)
+    {
+        printf("NaN in steering law\n");
+        angles[0] = 0;
+        angles[1] = 0;
+        return;
+    }
+
     angles[0] = atan2(-D2, -D1);
     angles[1] = atan2(-D3, sqrt(D1 * D1 + D2 * D2));
 }

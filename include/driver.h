@@ -13,6 +13,13 @@
 void slyga_ode(double t, double y[6], double dydt[6], bool *halt, ConfigStruct *cfg)
 {
 
+    if ((fabs(y[1]) > 1) || (fabs(y[2]) > 1))
+    {
+        // eccentricity is greater than 1
+        printf("y[1] = %f, y[2] = %f\n", y[1], y[2]);
+        *halt = true;
+    }
+
     double ideal_angles[2];
     lyapunov_steering(t, y, cfg, ideal_angles);
 
@@ -43,6 +50,11 @@ void slyga_ode(double t, double y[6], double dydt[6], bool *halt, ConfigStruct *
         err = sqrt(err);
 
         *halt = (bool)(err < cfg->guidance_tol);
+    }
+    if (accel_norm != accel_norm)
+    {
+        printf("accel_norm is NaN\n");
+        *halt = true;
     }
 }
 

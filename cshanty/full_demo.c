@@ -22,7 +22,7 @@ int main()
         .solver = rk89,
         .steering_law = lyapunov_steering,
         .t_span = {0, 1e8},
-        .ode_rel_tol = 1e-4,
+        .ode_rel_tol = 1e-1, // accurate to 0.1 m
         .ode_h0 = 1e2,
         .guidance_tol = 5e-2,
         .guidance_weights = {1, 1, 1, 1, 1},
@@ -35,8 +35,8 @@ int main()
     printf("n: %d\n", sol->n);
     printf("n_fev: %d\n", sol->n_fev);
     printf("n_step_fail: %d\n", sol->n_step_fail);
-    printf("t_final: %f\n", sol->t[sol->n]);
-    printf("number of revolutions: %d\n", (int)(sol->y[sol->n][5] / (2 * pi)));
+    printf("t_final: %f\n", sol->t[sol->n - 1]);
+    printf("number of revolutions: %d\n", (int)(sol->y[sol->n - 1][5] / (2 * pi)));
 
     FILE *fpt;
 
