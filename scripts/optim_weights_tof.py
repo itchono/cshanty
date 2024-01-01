@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.optimize import minimize
+from scipy.optimize import dual_annealing, differential_evolution
 
 from cshanty.wrapper import (
     ODESolver,
@@ -14,7 +14,7 @@ cfg = ConfigStruct(
     y0=np.array([20000e3, 0.5, -0.2, 0.5, 0, 0]),
     y_target=np.array([25000e3, 0.2, 0.5, 0, 0.3, 0]),
     propulsion_model=PropulsionModel.SAIL_THRUST,
-    solver=ODESolver.RK89,
+    solver=ODESolver.RK67,
     steering_law=SteeringLaw.LYAPUNOV,
     t_span=(0, 1e8),
     ode_rel_tol=1e-6,
@@ -29,13 +29,20 @@ cfg = ConfigStruct(
 )
 
 
-x = minimize(
+# x = dual_annealing(
+#     tof_wrt_weights_obj,
+#     bounds=((0, 10), (0, 10), (0, 10), (0, 10), (0, 10)),
+#     args=(cfg,),
+#     maxiter=1000,
+#     x0=np.array([1, 1, 1, 1, 1]),
+# )
+
+x = differential_evolution(
     tof_wrt_weights_obj,
-    np.array([1, 1, 1, 1, 1]),
+    bounds=((0, 10), (0, 10), (0, 10), (0, 10), (0, 10)),
     args=(cfg,),
-    method="Nelder-Mead",
-    bounds=((0, None), (0, None), (0, None), (0, None), (0, None)),
-    options={"maxiter": 1000, "disp": True},
+    maxiter=1000,
+    x0=np.array([1, 1, 1, 1, 1]),
 )
 
 print(x)
