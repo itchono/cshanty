@@ -21,8 +21,10 @@ cfg = ConfigStruct(
     guidance_tol=3e-2,
     guidance_weights=np.array([1, 1, 1, 1, 1]),
     penalty_param=1,
-    min_pe=6878e3,
-    penalty_weight=0,
+    min_pe=10000e3,
+    penalty_weight=1,
+    kappa_degraded=np.deg2rad(40),
+    kappa_feathered=np.deg2rad(91),
 )
 
 # run the mission

@@ -10,7 +10,17 @@
 
 #include <stdio.h>
 
-void slyga_ode(double t, double y_sc[6], double dydt[6], bool *halt, ConfigStruct *cfg)
+void slyga_ode(double t, double y_sc[6], double dydt[6], bool *halt, bool *fault, ConfigStruct *cfg)
+/**
+ * @brief primary driving ODE for the solar sail sim
+ *
+ * @param t time
+ * @param y_sc state vector
+ * @param dydt derivative of state vector (output)
+ * @param halt whether to halt the integration (output)
+ * @param fault whether an error has occurred (output)
+ * @param cfg configuration struct
+ */
 {
     // scaling
     double y[6];
@@ -24,14 +34,14 @@ void slyga_ode(double t, double y_sc[6], double dydt[6], bool *halt, ConfigStruc
     {
         // eccentricity is greater than 1
         printf("ECCENTRICITY > 1: y[1] = %f, y[2] = %f\n", y[1], y[2]);
-        *halt = true;
+        *fault = true | *fault;
     }
 
     double ideal_angles[2];
     lyapunov_steering(t, y, cfg, ideal_angles);
 
     double actual_angles[2];
-    ndf_heuristic(t, y, ideal_angles, actual_angles);
+    ndf_heuristic(t, y, ideal_angles, cfg, actual_angles);
 
     double accel_o[3];
     sail_thrust(t, y, actual_angles, accel_o);
@@ -49,7 +59,7 @@ void slyga_ode(double t, double y_sc[6], double dydt[6], bool *halt, ConfigStruc
     if (y[0] < r_earth && y[0] == y[0])
     {
         printf("plunged into the Earth (%f)\n", y[0]);
-        *halt = true;
+        *fault = true | *fault;
     }
     else
     {
@@ -67,7 +77,7 @@ void slyga_ode(double t, double y_sc[6], double dydt[6], bool *halt, ConfigStruc
     if (accel_norm != accel_norm)
     {
         printf("accel_norm is NaN\n");
-        *halt = true;
+        *fault = true | *fault;
     }
 }
 

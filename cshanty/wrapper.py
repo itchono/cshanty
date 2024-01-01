@@ -56,6 +56,8 @@ class ConfigStruct:
     penalty_param: float
     min_pe: float
     penalty_weight: float
+    kappa_degraded: float
+    kappa_feathered: float
 
     @property
     def _cstruct(self):
@@ -80,6 +82,8 @@ class ConfigStruct:
                 "penalty_param": self.penalty_param,
                 "min_pe": self.min_pe,
                 "penalty_weight": self.penalty_weight,
+                "kappa_degraded": self.kappa_degraded,
+                "kappa_feathered": self.kappa_feathered,
             },
         )
 
@@ -95,6 +99,8 @@ class MissionResult:
     n: int
     n_fev: int
     n_step_fail: int
+    halt: bool
+    fault: bool
 
     @classmethod
     def from_cstruct(cls, cstruct):
@@ -115,6 +121,8 @@ class MissionResult:
             n=cstruct.n,
             n_fev=cstruct.n_fev,
             n_step_fail=cstruct.n_step_fail,
+            halt=cstruct.halt,
+            fault=cstruct.fault,
         )
 
 
