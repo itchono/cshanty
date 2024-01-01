@@ -1,4 +1,4 @@
-from cshanty.low_level import lyapunov_steering, ndf_heuristic
+from cshanty.machinery import lyapunov_steering, ndf_heuristic
 from cshanty.wrapper import (
     ConfigStruct,
     ODESolver,
@@ -25,6 +25,8 @@ def dummy_cfg():
         penalty_param=1,
         min_pe=6878e3,
         penalty_weight=0,
+        kappa_degraded=np.deg2rad(64),
+        kappa_feathered=np.deg2rad(91),
     )
 
 
@@ -53,8 +55,8 @@ def test_lyapunov_steering(y, y_tgt, expected, dummy_cfg: ConfigStruct):
 def test_ndf_heuristic(dummy_cfg: ConfigStruct):
     y = np.array([20000e3, 0.5, -0.2, 0.5, 0, 0])
     ideal_angles = np.array([-0.066162809112105, -0.148247720664508])
-    actual_angles = ndf_heuristic(0, y, ideal_angles)
+    actual_angles = ndf_heuristic(0, y, ideal_angles, dummy_cfg)
 
     assert actual_angles == pytest.approx(
-        np.array([-0.353336061916198, -0.139512479562209])
+        np.array([-0.459015332945718, -0.133381657639300])
     )

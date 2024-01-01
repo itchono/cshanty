@@ -12,6 +12,7 @@
 
 #define VEC_SIZE 6    // dimension of vector (kept static at 6 for orbit prop)
 #define MIN_STEP 1e-8 // minimum step size
+#define MAX_STEP 1e4  // maximum step size
 
 // Big macro for defining general RK method
 #define RK_METHOD_ADAPTIVE(weights_a, weights_b, weights_bh,                      \
@@ -150,6 +151,8 @@
         /*final bastion of defense*/                                              \
         if (h < MIN_STEP)                                                         \
             h = MIN_STEP;                                                         \
+        if (h > MAX_STEP)                                                         \
+            h = MAX_STEP;                                                         \
     }                                                                             \
     /* record # of steps after finish */                                          \
     result->n = step + 1;                                                         \

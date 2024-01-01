@@ -40,9 +40,9 @@ void pe_penalty(double y[6], double pen_param, double rpmin, double *P, double d
 
     *P = exp(pen_param * (1 - rp / rpmin));
 
-    dPdy[0] = (f * pen_param * p * exp(-pen_param * (p / (rpmin * (sqrt(f * f + g * g) + 1.0)) - 1.0)) * 1.0 / ((sqrt(f * f + g * g) + 1.0) * (sqrt(f * f + g * g) + 1.0)) * 1.0 / sqrt(f * f + g * g)) / rpmin;
-    dPdy[1] = (g * pen_param * p * exp(-pen_param * (p / (rpmin * (sqrt(f * f + g * g) + 1.0)) - 1.0)) * 1.0 / ((sqrt(f * f + g * g) + 1.0) * (sqrt(f * f + g * g) + 1.0)) * 1.0 / sqrt(f * f + g * g)) / rpmin;
-    dPdy[2] = -(pen_param * exp(-pen_param * (p / (rpmin * (sqrt(f * f + g * g) + 1.0)) - 1.0))) / (rpmin * (sqrt(f * f + g * g) + 1.0));
+    dPdy[0] = -(pen_param * exp(-pen_param * (p / (rpmin * (sqrt(f * f + g * g) + 1.0)) - 1.0))) / (rpmin * (sqrt(f * f + g * g) + 1.0));
+    dPdy[1] = (f * pen_param * p * exp(-pen_param * (p / (rpmin * (sqrt(f * f + g * g) + 1.0)) - 1.0)) * 1.0 / ((sqrt(f * f + g * g) + 1.0) * (sqrt(f * f + g * g) + 1.0)) * 1.0 / sqrt(f * f + g * g)) / rpmin;
+    dPdy[2] = (g * pen_param * p * exp(-pen_param * (p / (rpmin * (sqrt(f * f + g * g) + 1.0)) - 1.0)) * 1.0 / ((sqrt(f * f + g * g) + 1.0) * (sqrt(f * f + g * g) + 1.0)) * 1.0 / sqrt(f * f + g * g)) / rpmin;
     dPdy[3] = 0.0;
     dPdy[4] = 0.0;
 }
