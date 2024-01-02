@@ -30,7 +30,7 @@ void approx_max_roc(double y[6], double maxroc[5])
     maxroc[4] = 1.0 / 2.0 * sqrt(p / mu) * (1 + h * h + k * k) / (sqrt(1 - f * f) + g);
 }
 
-void pe_penalty(double y[6], double pen_param, double rpmin, double *P, double dPdy[6])
+void pe_penalty(double y[6], double pen_param, double rpmin, double *P, double dPdy[5])
 {
     double p = y[0];
     double f = y[1];
@@ -40,12 +40,11 @@ void pe_penalty(double y[6], double pen_param, double rpmin, double *P, double d
 
     *P = exp(pen_param * (1 - rp / rpmin));
 
-    dPdy[0] = (f * pen_param * p * exp(-pen_param * (p / (rpmin * (sqrt(f * f + g * g) + 1.0)) - 1.0)) * 1.0 / ((sqrt(f * f + g * g) + 1.0) * (sqrt(f * f + g * g) + 1.0)) * 1.0 / sqrt(f * f + g * g)) / rpmin;
-    dPdy[1] = (g * pen_param * p * exp(-pen_param * (p / (rpmin * (sqrt(f * f + g * g) + 1.0)) - 1.0)) * 1.0 / ((sqrt(f * f + g * g) + 1.0) * (sqrt(f * f + g * g) + 1.0)) * 1.0 / sqrt(f * f + g * g)) / rpmin;
-    dPdy[2] = -(pen_param * exp(-pen_param * (p / (rpmin * (sqrt(f * f + g * g) + 1.0)) - 1.0))) / (rpmin * (sqrt(f * f + g * g) + 1.0));
+    dPdy[0] = -(pen_param * exp(-pen_param * (p / (rpmin * (sqrt(f * f + g * g) + 1.0)) - 1.0))) / (rpmin * (sqrt(f * f + g * g) + 1.0));
+    dPdy[1] = (f * pen_param * p * exp(-pen_param * (p / (rpmin * (sqrt(f * f + g * g) + 1.0)) - 1.0)) * 1.0 / ((sqrt(f * f + g * g) + 1.0) * (sqrt(f * f + g * g) + 1.0)) * 1.0 / sqrt(f * f + g * g)) / rpmin;
+    dPdy[2] = (g * pen_param * p * exp(-pen_param * (p / (rpmin * (sqrt(f * f + g * g) + 1.0)) - 1.0)) * 1.0 / ((sqrt(f * f + g * g) + 1.0) * (sqrt(f * f + g * g) + 1.0)) * 1.0 / sqrt(f * f + g * g)) / rpmin;
     dPdy[3] = 0.0;
     dPdy[4] = 0.0;
-    dPdy[5] = 0.0;
 }
 
 void lyapunov_steering(double t, double y[6], ConfigStruct *cfg, double angles[2])
@@ -113,7 +112,7 @@ void lyapunov_steering(double t, double y[6], ConfigStruct *cfg, double angles[2
     angles[1] = atan2(-D3, sqrt(D1 * D1 + D2 * D2));
 }
 
-void ndf_heuristic(double t, double y[6], double ideal_angles[2], double adapted_angles[2])
+void ndf_heuristic(double t, double y[6], double ideal_angles[2], ConfigStruct *cfg, double adapted_angles[2])
 {
     double p = y[0];
     double f = y[1];
@@ -152,20 +151,20 @@ void ndf_heuristic(double t, double y[6], double ideal_angles[2], double adapted
     // Target LVLH pointing vector
     double n_prime_o[3];
 
-    if (c_cone_ang < cos(kappa_feathered))
+    if (c_cone_ang < cos(cfg->kappa_feathered))
     {
         // Feather the sail if we're below kappa_f, point in b_i
         mat_times_vec(COI, b_i, n_prime_o);
         lvlh2steering(n_prime_o, adapted_angles);
     }
-    else if (c_cone_ang < cos(kappa_degraded))
+    else if (c_cone_ang < cos(cfg->kappa_degraded))
     {
         // Degraded guidance, if we're between kappa_d and kappa_f vector
         // in plane of u_i and n_star, but orthogonal to u_i
 
-        double n_prime_i[] = {cos(kappa_degraded) * u_i[0] + sin(kappa_degraded) * b_i[0],
-                              cos(kappa_degraded) * u_i[1] + sin(kappa_degraded) * b_i[1],
-                              cos(kappa_degraded) * u_i[2] + sin(kappa_degraded) * b_i[2]};
+        double n_prime_i[] = {cos(cfg->kappa_degraded) * u_i[0] + sin(cfg->kappa_degraded) * b_i[0],
+                              cos(cfg->kappa_degraded) * u_i[1] + sin(cfg->kappa_degraded) * b_i[1],
+                              cos(cfg->kappa_degraded) * u_i[2] + sin(cfg->kappa_degraded) * b_i[2]};
         mat_times_vec(COI, n_prime_i, n_prime_o);
         lvlh2steering(n_prime_o, adapted_angles);
     }

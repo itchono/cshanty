@@ -2,7 +2,6 @@ from cffi import FFI
 
 ffibuilder = FFI()
 
-# two public functions: orbit and stateFromKeplerian
 ffibuilder.cdef(
     """
 typedef struct RKSolution
@@ -12,11 +11,13 @@ typedef struct RKSolution
     int n;           // number of steps taken
     int n_fev;       // number of function evaluations
     int n_step_fail; // number of failed steps
+    bool halt;       // whether the integration was halted
+    bool fault;      // whether an error occurred
 } RKSolution;
 
 typedef struct ConfigStruct ConfigStruct;
 
-typedef RKSolution(*(*ODESolver)(void(double, double *, double *, bool *, ConfigStruct *), double, double, ConfigStruct *));
+typedef RKSolution(*(*ODESolver)(void(double, double *, double *, bool *, bool *, ConfigStruct *), double, double, ConfigStruct *));
 typedef void (*SteeringLaw)(double, double *, ConfigStruct *, double[2]);
 typedef void (*PropulsionModel)(double, double *, double[2], double[3]);
 
@@ -35,20 +36,24 @@ struct ConfigStruct
     double penalty_param;
     double min_pe;
     double penalty_weight;
+    double kappa_degraded;
+    double kappa_feathered;
 };
 
 void free(void* ptr); // free memory allocated by C code
 
-RKSolution *rk89(void (*f)(double, double[6], double[6], bool*, ConfigStruct*), double t0, double tf, ConfigStruct* cfg);
-RKSolution *rk78(void (*f)(double, double[6], double[6], bool*, ConfigStruct*), double t0, double tf, ConfigStruct* cfg);
-RKSolution *rk67(void (*f)(double, double[6], double[6], bool*, ConfigStruct*), double t0, double tf, ConfigStruct* cfg);
-RKSolution *rk56(void (*f)(double, double[6], double[6], bool*, ConfigStruct*), double t0, double tf, ConfigStruct* cfg);
-RKSolution *rk810(void (*f)(double, double[6], double[6], bool*, ConfigStruct*), double t0, double tf, ConfigStruct* cfg);
-RKSolution *rk1012(void (*f)(double, double[6], double[6], bool*, ConfigStruct*), double t0, double tf, ConfigStruct* cfg);
-RKSolution *rk1214(void (*f)(double, double[6], double[6], bool*, ConfigStruct*), double t0, double tf, ConfigStruct* cfg);
+RKSolution *rk89(void (*f)(double, double[6], double[6], bool*, bool*, ConfigStruct*), double t0, double tf, ConfigStruct* cfg);
+RKSolution *rk78(void (*f)(double, double[6], double[6], bool*, bool*, ConfigStruct*), double t0, double tf, ConfigStruct* cfg);
+RKSolution *rk67(void (*f)(double, double[6], double[6], bool*, bool*, ConfigStruct*), double t0, double tf, ConfigStruct* cfg);
+RKSolution *rk56(void (*f)(double, double[6], double[6], bool*, bool*, ConfigStruct*), double t0, double tf, ConfigStruct* cfg);
+RKSolution *rk810(void (*f)(double, double[6], double[6], bool*, bool*, ConfigStruct*), double t0, double tf, ConfigStruct* cfg);
+RKSolution *rk1012(void (*f)(double, double[6], double[6], bool*, bool*, ConfigStruct*), double t0, double tf, ConfigStruct* cfg);
+RKSolution *rk1214(void (*f)(double, double[6], double[6], bool*, bool*, ConfigStruct*), double t0, double tf, ConfigStruct* cfg);
 
 void sail_thrust(double t, double y[6], double angles[2], double acceleration[3]);
 void lyapunov_steering(double t, double y[6], ConfigStruct *cfg, double angles[2]);
+void ndf_heuristic(double t, double y[6], double ideal_angles[2], ConfigStruct *cfg, double adapted_angles[2]);
+void pe_penalty(double y[6], double pen_param, double rpmin, double *P, double dPdy[5]);
 
 RKSolution *run_mission(ConfigStruct *cfg);
 """

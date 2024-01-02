@@ -28,7 +28,9 @@ int main()
         .guidance_weights = {1, 1, 1, 1, 1},
         .penalty_param = 1,
         .min_pe = 6878e3,
-        .penalty_weight = 0};
+        .penalty_weight = 0,
+        .kappa_degraded = pi / 180.0 * 70,
+        .kappa_feathered = pi / 180.0 * 91};
 
     RKSolution *sol = run_mission(&cfg);
 
