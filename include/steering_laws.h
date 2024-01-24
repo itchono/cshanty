@@ -63,15 +63,15 @@ void lyapunov_steering(double t, double y[6], ConfigStruct *cfg, double angles[2
     double dPdoe[5];
     pe_penalty(y, cfg->penalty_param, cfg->min_pe, &P, dPdoe);
 
-    double w_p = cfg->penalty_weight;
+    double W_p = cfg->penalty_weight;
 
     double Xi[5]; // 5 x 1 vector
     for (int i = 0; i < 5; i++)
     {
-        double Xi_penalty = dPdoe[i] * ((oe[i] - oe_hat[i]) / d_oe_max[i] * (oe[i] - oe_hat[i]) / d_oe_max[i]);
-        double Xi_classic = 2 * (oe[i] - oe_hat[i]) / d_oe_max[i];
+        double Xi_P = dPdoe[i] * ((oe[i] - oe_hat[i]) / d_oe_max[i] * (oe[i] - oe_hat[i]) / d_oe_max[i]);
+        double Xi_E = 2 * (oe[i] - oe_hat[i]) / d_oe_max[i];
 
-        Xi[i] = cfg->guidance_weights[i] * S[i] * (w_p * Xi_penalty + (1 + w_p * P) * Xi_classic);
+        Xi[i] = W_p * Xi_P + (1 + W_p * P) * Xi_E;
     }
 
     double A_T[3][5]; // 3 x 5 matrix
@@ -84,23 +84,17 @@ void lyapunov_steering(double t, double y[6], ConfigStruct *cfg, double angles[2
     }
 
     // final result is 3 x 1 vector achieved by A_T * Xi
-    double d_Gamma_d_F[3];
+    double D[3] = {0, 0, 0};
     for (int i = 0; i < 3; i++)
     {
-        d_Gamma_d_F[i] = 0;
         for (int j = 0; j < 5; j++)
         {
-            d_Gamma_d_F[i] += A_T[i][j] * Xi[j];
+            D[i] += A_T[i][j] * cfg->guidance_weights[j] * S[j] * Xi[j];
         }
     }
 
-    // GVE ordering is r, t, n; D1-3 is in order t, r, n
-    double D1 = d_Gamma_d_F[1];
-    double D2 = d_Gamma_d_F[0];
-    double D3 = d_Gamma_d_F[2];
-
     // NAN check
-    if (D1 != D1 || D2 != D2 || D3 != D3)
+    if (D[0] != D[0] || D[1] != D[1] || D[2] != D[2])
     {
         printf("NaN in steering law\n");
         angles[0] = 0;
@@ -108,8 +102,8 @@ void lyapunov_steering(double t, double y[6], ConfigStruct *cfg, double angles[2
         return;
     }
 
-    angles[0] = atan2(-D2, -D1);
-    angles[1] = atan2(-D3, sqrt(D1 * D1 + D2 * D2));
+    angles[0] = atan2(-D[0], -D[1]);
+    angles[1] = atan2(-D[2], sqrt(D[0] * D[0] + D[1] * D[1]));
 }
 
 void ndf_heuristic(double t, double y[6], double ideal_angles[2], ConfigStruct *cfg, double adapted_angles[2])
