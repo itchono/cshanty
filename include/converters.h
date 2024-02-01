@@ -21,7 +21,7 @@ void mee2cartesian(double p, double f, double g, double h, double k, double L, d
     double vel_fac = 1.0 / (s_sq)*sqrt(mu / p);
 
     pos_vel[3] = vel_fac * (-(sin(L) + alpha_sq * sin(L) - 2 * h * k * cos(L) + g - 2 * f * h * k + alpha_sq * g));
-    pos_vel[4] = vel_fac * (-(-cos(L) + alpha_sq * cos(L) + 2 * h * k * sin(L) - g + 2 * g * h * k + alpha_sq * f));
+    pos_vel[4] = vel_fac * (-(-cos(L) + alpha_sq * cos(L) + 2 * h * k * sin(L) - f + 2 * g * h * k + alpha_sq * f));
     pos_vel[5] = vel_fac * (2 * (h * cos(L) + k * sin(L) + f * h + g * k));
 }
 
