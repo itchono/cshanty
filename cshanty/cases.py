@@ -1,6 +1,6 @@
 import numpy as np
 
-from cshanty.wrapper import ConfigStruct, ODESolver, SteeringLaw, PropulsionModel
+from cshanty.wrapper import ConfigStruct, ODESolver, PropulsionModel, SteeringLaw
 
 BENCHMARK_TRANSFER = ConfigStruct(
     y0=np.array([20000e3, 0.5, -0.2, 0.5, 0, 0]),
@@ -17,7 +17,7 @@ BENCHMARK_TRANSFER = ConfigStruct(
     min_pe=6878e3,
     penalty_weight=0,
     kappa_degraded=np.deg2rad(64.5),
-    kappa_feathered=np.deg2rad(91),
+    kappa_feathered=np.deg2rad(90),
 )
 
 OGURI_CASE_G = ConfigStruct(
@@ -35,5 +35,5 @@ OGURI_CASE_G = ConfigStruct(
     min_pe=6878e3,
     penalty_weight=0,
     kappa_degraded=np.deg2rad(64.5),
-    kappa_feathered=np.deg2rad(91),
+    kappa_feathered=np.deg2rad(90),
 )
