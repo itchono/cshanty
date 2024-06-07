@@ -6,20 +6,17 @@ from scipy.optimize import dual_annealing
 from cshanty import cases
 from cshanty.optimization_funcs import tof_wrt_all_obj
 
-# capture stdout and write to file
-# sys.stdout = open("optim_weights_tof.txt", "w")
+cfg = cases.BENCHMARK_TRANSFER
+cfg.sail_sigma = 0.002
 
-cfg = cases.OGURI_CASE_G
+sys.stdout = open(f"optim_weights_tof_{cfg.sail_sigma}.txt", "w", buffering=1)
 
 x = dual_annealing(
     tof_wrt_all_obj,
-    bounds=((30, 90), (0.1, 10), (0.1, 10), (0.1, 10), (0.1, 10), (0.1, 10)),
+    bounds=((55, 90), (0.1, 10), (0.1, 10), (0.1, 10), (0.1, 10), (0.1, 10)),
     args=(cfg,),
-    maxiter=1000,
+    maxiter=200,
     x0=np.array([60, 1, 1, 1, 1, 1]),
-    # x0=np.array(
-    #     [45.16114668, 2.89471723, 0.19654136, 3.99686416, 9.81140716, 2.21168978]
-    # ),
 )
 
 print(x)
