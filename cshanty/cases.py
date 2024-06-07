@@ -1,11 +1,10 @@
 import numpy as np
 
-from cshanty.wrapper import ConfigStruct, ODESolver, PropulsionModel, SteeringLaw
+from cshanty.wrapper import ConfigStruct, ODESolver, SteeringLaw
 
 BENCHMARK_TRANSFER = ConfigStruct(
     y0=np.array([20000e3, 0.5, -0.2, 0.5, 0, 0]),
     y_target=np.array([25000e3, 0.2, 0.5, 0, 0.3]),
-    propulsion_model=PropulsionModel.SAIL_THRUST,
     solver=ODESolver.RK67,
     steering_law=SteeringLaw.LYAPUNOV,
     t_span=(0, 1e8),
@@ -16,14 +15,14 @@ BENCHMARK_TRANSFER = ConfigStruct(
     penalty_param=1,
     min_pe=6878e3,
     penalty_weight=0,
-    kappa_degraded=np.deg2rad(64.5),
+    kappa_degraded=np.deg2rad(64),
     kappa_feathered=np.deg2rad(90),
+    sail_sigma=0.005,
 )
 
 OGURI_CASE_G = ConfigStruct(
     y0=np.array([1.162498631250000e7, 0.725, 0, 0, 0, 0]),
     y_target=np.array([42165000, 0, 0, 0, -1]),
-    propulsion_model=PropulsionModel.SAIL_THRUST,
     solver=ODESolver.RK67,
     steering_law=SteeringLaw.LYAPUNOV,
     t_span=(0, 1e8),
@@ -34,6 +33,7 @@ OGURI_CASE_G = ConfigStruct(
     penalty_param=1,
     min_pe=6878e3,
     penalty_weight=0,
-    kappa_degraded=np.deg2rad(64.5),
+    kappa_degraded=np.deg2rad(64),
     kappa_feathered=np.deg2rad(90),
+    sail_sigma=0.005,
 )

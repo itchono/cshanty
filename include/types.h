@@ -16,13 +16,11 @@ typedef struct ConfigStruct ConfigStruct;
 
 typedef RKSolution(*(*ODESolver)(void(double, double *, double *, bool *, bool *, ConfigStruct *), double, double, ConfigStruct *));
 typedef void (*SteeringLaw)(double, double *, ConfigStruct *, double[2]);
-typedef void (*PropulsionModel)(double, double *, double[2], double[3]);
 
 struct ConfigStruct
 {
     double y0[6];
-    double y_target[6];
-    PropulsionModel propulsion_model;
+    double y_target[5];
     ODESolver solver;
     SteeringLaw steering_law;
     double t_span[2];
@@ -35,6 +33,7 @@ struct ConfigStruct
     double penalty_weight;
     double kappa_degraded;
     double kappa_feathered;
+    double sail_sigma;
 };
 
 #endif

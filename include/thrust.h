@@ -5,7 +5,7 @@
 #include "rotations.h"
 #include "ephemeris.h"
 
-void sail_thrust(double t, double y[6], double angles[2], double acceleration[3])
+void sail_thrust(double t, double y[6], double angles[2], double acceleration[3], double sail_sigma)
 {
     double p = y[0];
     double f = y[1];

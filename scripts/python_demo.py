@@ -4,7 +4,6 @@ from matplotlib import pyplot as plt
 from cshanty.wrapper import (
     ConfigStruct,
     ODESolver,
-    PropulsionModel,
     SteeringLaw,
     run_mission,
 )
@@ -13,7 +12,6 @@ from cshanty.wrapper import (
 cfg = ConfigStruct(
     y0=np.array([1.162498631250000e7, 0.725, 0, 0, 0, 0]),
     y_target=np.array([42165000, 0, 0, 0, -1]),
-    propulsion_model=PropulsionModel.SAIL_THRUST,
     solver=ODESolver.RK89,
     steering_law=SteeringLaw.LYAPUNOV,
     t_span=(0, 1e8),

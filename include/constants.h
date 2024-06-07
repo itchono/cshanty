@@ -9,7 +9,6 @@ const double r_earth = 6378e3; // m
 const double pi = 3.1415926535897932384;
 
 const double sail_p = 4.56e-6;
-const double sail_sigma = 0.01;
 const double sail_eta = 0.85;
 
 #endif

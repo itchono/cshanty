@@ -1,5 +1,6 @@
 import numpy as np
 import numpy.typing as npt
+
 from cshanty.wrapper import (
     ConfigStruct,
     run_mission,
@@ -31,7 +32,7 @@ def tof_wrt_weights_obj(
 
     # determine if the mission was successful
     if sol.fault or not sol.halt:
-        print("fault or not halt")
+        print("ERROR: fault or not halt")
         return np.inf
 
     print(f"Tof: {tof:.0f} sec using weights {weights}")
@@ -72,4 +73,37 @@ def tof_wrt_kappa_obj(
     print(
         f"Tof: {tof:.0f} sec using kappa_d {np.rad2deg(kappa_degraded):.2f} and kappa_f {np.rad2deg(kappa_feathered):.2f}"
     )
+    return tof
+
+
+def tof_wrt_all_obj(params: npt.NDArray[np.floating], base_cfg: ConfigStruct) -> float:
+    """
+    Time of flight associated with a certain set of guidance weights AND degraded angle.
+
+    Parameters
+    ----------
+    params : npt.NDArray[np.floating]
+        angle [0] and weights [1:5]
+    base_cfg : ConfigStruct
+        The base configuration for the mission.
+
+    Returns
+    -------
+    float
+        The time of flight associated with the given guidance weights.
+    """
+    base_cfg.kappa_degraded = np.deg2rad(params[0])
+    base_cfg.guidance_weights = params[1:]
+
+    # run the mission
+    sol = run_mission(base_cfg)
+    tof = sol.t[-1]
+
+    # determine if the mission was successful
+    if sol.fault or not sol.halt:
+        print("ERROR: fault or not halt")
+        return np.inf
+
+    print(f"Tof: {tof:.0f} sec using weights {params}")
+
     return tof

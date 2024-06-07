@@ -18,7 +18,6 @@ int main()
                      0,
                      0.3,
                      0},
-        .propulsion_model = sail_thrust,
         .solver = rk89,
         .steering_law = lyapunov_steering,
         .t_span = {0, 1e8},

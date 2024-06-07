@@ -29,14 +29,6 @@ class SteeringLaw(Enum):
     LYAPUNOV = ffi.addressof(lib, "lyapunov_steering")
 
 
-class PropulsionModel(Enum):
-    """
-    Enum of the available propulsion models.
-    """
-
-    SAIL_THRUST = ffi.addressof(lib, "sail_thrust")
-
-
 @dataclass
 class ConfigStruct:
     """
@@ -45,7 +37,6 @@ class ConfigStruct:
 
     y0: npt.NDArray[np.floating]
     y_target: npt.NDArray[np.floating]
-    propulsion_model: PropulsionModel
     solver: ODESolver
     steering_law: SteeringLaw
     t_span: tuple[float, float]
@@ -58,6 +49,7 @@ class ConfigStruct:
     penalty_weight: float
     kappa_degraded: float
     kappa_feathered: float
+    sail_sigma: float
 
     @property
     def _cstruct(self):
@@ -68,8 +60,7 @@ class ConfigStruct:
             "ConfigStruct *",
             {
                 "y0": ffi.new("double[6]", self.y0.tolist()),
-                "y_target": ffi.new("double[6]", self.y_target.tolist()),
-                "propulsion_model": self.propulsion_model.value,
+                "y_target": ffi.new("double[5]", self.y_target.tolist()),
                 "solver": self.solver.value,
                 "steering_law": self.steering_law.value,
                 "t_span": ffi.new("double[2]", self.t_span),
@@ -84,6 +75,7 @@ class ConfigStruct:
                 "penalty_weight": self.penalty_weight,
                 "kappa_degraded": self.kappa_degraded,
                 "kappa_feathered": self.kappa_feathered,
+                "sail_sigma": self.sail_sigma,
             },
         )
 

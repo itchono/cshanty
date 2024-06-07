@@ -1,19 +1,16 @@
 import numpy as np
 from scipy.optimize import minimize_scalar
 
+from cshanty.optimization_funcs import tof_wrt_kappa_obj
 from cshanty.wrapper import (
+    ConfigStruct,
     ODESolver,
     SteeringLaw,
-    PropulsionModel,
-    ConfigStruct,
 )
-from cshanty.optimization_funcs import tof_wrt_kappa_obj
-
 
 cfg = ConfigStruct(
     y0=np.array([20000e3, 0.5, -0.2, 0.5, 0, 0]),
     y_target=np.array([25000e3, 0.2, 0.5, 0, 0.3, 0]),
-    propulsion_model=PropulsionModel.SAIL_THRUST,
     solver=ODESolver.RK67,
     steering_law=SteeringLaw.LYAPUNOV,
     t_span=(0, 1e8),

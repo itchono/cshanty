@@ -44,7 +44,7 @@ void slyga_ode(double t, double y_sc[6], double dydt[6], bool *halt, bool *fault
     ndf_heuristic(t, y, ideal_angles, cfg, actual_angles);
 
     double accel_o[3];
-    sail_thrust(t, y, actual_angles, accel_o);
+    sail_thrust(t, y, actual_angles, accel_o, cfg->sail_sigma);
 
     double accel_norm = vec_norm(accel_o); // do something with this later for delta-v
 
