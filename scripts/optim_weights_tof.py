@@ -10,9 +10,10 @@ cfgs = [cases.BENCHMARK_TRANSFER, cases.OGURI_CASE_G]
 cfg_names = ["BENCHMARK_TRANSFER", "OGURI_CASE_G"]
 
 for cfg, cfg_name in zip(cfgs, cfg_names):
-    for sail_sigma in [0.01, 0.005, 0.002]:
+    for sail_sigma in [0.002, 0.005, 0.01, 0.05]:
 
         cfg.sail_sigma = sail_sigma
+        cfg.t_span = (0, 1.5e9)
 
         sys.stdout = open(
             f"optim_weights_tof_{cfg_name}_{sail_sigma}.txt", "w", buffering=1
