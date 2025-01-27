@@ -49,7 +49,6 @@ void pe_penalty(double y[6], double pen_param, double rpmin, double *P, double d
 
 void lyapunov_steering(double t, double y[6], ConfigStruct *cfg, double angles[2])
 {
-    double S[5] = {1. / 6378e3, 1, 1, 1, 1};
     double A[6][3];
     gve_coeffs(y, A);
 
@@ -69,7 +68,7 @@ void lyapunov_steering(double t, double y[6], ConfigStruct *cfg, double angles[2
     for (int i = 0; i < 5; i++)
     {
         double Xi_P = dPdoe[i] * ((oe[i] - oe_hat[i]) / d_oe_max[i] * (oe[i] - oe_hat[i]) / d_oe_max[i]);
-        double Xi_E = 2 * (oe[i] - oe_hat[i]) / d_oe_max[i];
+        double Xi_E = 2 * (oe[i] - oe_hat[i]) / (d_oe_max[i] * d_oe_max[i]);
 
         Xi[i] = W_p * Xi_P + (1 + W_p * P) * Xi_E;
     }
@@ -89,7 +88,7 @@ void lyapunov_steering(double t, double y[6], ConfigStruct *cfg, double angles[2
     {
         for (int j = 0; j < 5; j++)
         {
-            D[i] += A_T[i][j] * cfg->guidance_weights[j] * S[j] * Xi[j];
+            D[i] += A_T[i][j] * cfg->guidance_weights[j] * Xi[j];
         }
     }
 

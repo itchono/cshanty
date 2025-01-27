@@ -67,7 +67,9 @@ ffibuilder.set_source(
     #include "solvers.h"
     """,
     include_dirs=["./include"],
-    extra_compile_args=["-std=c99", "-O3", "-march=native", "-ffast-math", "-lm"],
+    # extra_compile_args=["-std=c99", "-O3", "-march=native", "-ffast-math", "-lm"],
+    extra_compile_args=["/O2"],
+    
 )
 
 if __name__ == "__main__":
