@@ -11,8 +11,9 @@
 #include "types.h"
 
 #define VEC_SIZE 6    // dimension of vector (kept static at 6 for orbit prop)
-#define MIN_STEP 1e-8 // minimum step size
+#define MIN_STEP 1e-2 // minimum step size
 #define MAX_STEP 1e4  // maximum step size
+#define MAX_NSTEP 1e6 // maximum number of steps
 
 // Big macro for defining general RK method
 #define RK_METHOD_ADAPTIVE(weights_a, weights_b, weights_bh,                      \
@@ -60,6 +61,15 @@
     /* INTEGRATION STEPS */                                                       \
     while ((t - h <= tf) && !(halt || fault))                                     \
     {                                                                             \
+        /* Exit if too many steps */                                              \
+        if (step >= MAX_NSTEP)                                                    \
+        {                                                                         \
+            result->n = step + 1;                                                 \
+            result->halt = halt;                                                  \
+            result->fault = fault;                                                \
+            return result;                                                        \
+        }                                                                         \
+                                                                                  \
         /* Evaluate derivative at stage 0 */                                      \
         f(t, y_curr, k[0], &halt, &fault, cfg);                                   \
         result->n_fev++;                                                          \

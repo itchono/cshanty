@@ -9,7 +9,7 @@
 #include "types.h"
 #include "eqns_of_motion.h"
 
-void approx_max_roc(double y[6], double maxroc[5])
+void approx_max_roc(double y[6], double maxroc[5], double accel)
 /**
  * @brief Approximate maximum rates of change of each element across all steering angles and values of L.
  */
@@ -23,11 +23,29 @@ void approx_max_roc(double y[6], double maxroc[5])
 
     double q = 1 + f * cos(L) + g * sin(L);
 
-    maxroc[0] = 2.0 * p / q * sqrt(p / mu);
-    maxroc[1] = 2.0 * sqrt(p / mu); // approximations
-    maxroc[2] = 2.0 * sqrt(p / mu); // approximations
-    maxroc[3] = 1.0 / 2.0 * sqrt(p / mu) * (1 + h * h + k * k) / (sqrt(1 - g * g) + f);
-    maxroc[4] = 1.0 / 2.0 * sqrt(p / mu) * (1 + h * h + k * k) / (sqrt(1 - f * f) + g);
+    maxroc[0] = 2.0 * p / q * sqrt(p / mu) * accel;
+    maxroc[1] = 2.0 * sqrt(p / mu) * accel; // approximations
+    maxroc[2] = 2.0 * sqrt(p / mu) * accel; // approximations
+    maxroc[3] = 1.0 / 2.0 * sqrt(p / mu) * (1 + h * h + k * k) / (sqrt(1 - g * g) + f) * accel;
+    maxroc[4] = 1.0 / 2.0 * sqrt(p / mu) * (1 + h * h + k * k) / (sqrt(1 - f * f) + g) * accel;
+}
+
+void max_roc_partials(double y[6], double partials[5], double accel)
+{
+    double p = y[0];
+    double f = y[1];
+    double g = y[2];
+    double h = y[3];
+    double k = y[4];
+    double L = y[5];
+
+    double q = 1 + f * cos(L) + g * sin(L);
+
+    partials[0] = 3.0 / q * sqrt(p / mu) * accel;
+    partials[1] = 0;
+    partials[2] = 0;
+    partials[3] = sqrt(p / mu) * h / (sqrt(1 - g * g) + f) * accel;
+    partials[4] = sqrt(p / mu) * k / (sqrt(1 - f * f) + g) * accel;
 }
 
 void pe_penalty(double y[6], double pen_param, double rpmin, double *P, double dPdy[5])
@@ -52,8 +70,12 @@ void lyapunov_steering(double t, double y[6], ConfigStruct *cfg, double angles[2
     double A[6][3];
     gve_coeffs(y, A);
 
+    double accel = 2.0 * sail_p * sail_eta / cfg->sail_sigma;
+
     double d_oe_max[5];
-    approx_max_roc(y, d_oe_max);
+    double partial_doe[5];
+    approx_max_roc(y, d_oe_max, accel);
+    max_roc_partials(y, partial_doe, accel);
 
     double oe[5] = {y[0], y[1], y[2], y[3], y[4]};
     double oe_hat[5] = {cfg->y_target[0], cfg->y_target[1], cfg->y_target[2], cfg->y_target[3], cfg->y_target[4]};
@@ -68,9 +90,10 @@ void lyapunov_steering(double t, double y[6], ConfigStruct *cfg, double angles[2
     for (int i = 0; i < 5; i++)
     {
         double Xi_P = dPdoe[i] * ((oe[i] - oe_hat[i]) / d_oe_max[i] * (oe[i] - oe_hat[i]) / d_oe_max[i]);
-        double Xi_E = 2 * (oe[i] - oe_hat[i]) / (d_oe_max[i] * d_oe_max[i]);
+        double Xi_Q = (oe[i] - oe_hat[i]) / (d_oe_max[i] * d_oe_max[i]);
+        double Xi_R = -(oe[i] - oe_hat[i]) / (d_oe_max[i] * d_oe_max[i] * d_oe_max[i]) * partial_doe[i];
 
-        Xi[i] = W_p * Xi_P + (1 + W_p * P) * Xi_E;
+        Xi[i] = W_p * Xi_P + 2 * (1 + W_p * P) * (Xi_Q + Xi_R);
     }
 
     double A_T[3][5]; // 3 x 5 matrix
@@ -98,11 +121,12 @@ void lyapunov_steering(double t, double y[6], ConfigStruct *cfg, double angles[2
         printf("NaN in steering law\n");
         angles[0] = 0;
         angles[1] = 0;
-        return;
     }
-
-    angles[0] = atan2(-D[0], -D[1]);
-    angles[1] = atan2(-D[2], sqrt(D[0] * D[0] + D[1] * D[1]));
+    else
+    {
+        angles[0] = atan2(-D[0], -D[1]);
+        angles[1] = atan2(-D[2], sqrt(D[0] * D[0] + D[1] * D[1]));
+    }
 }
 
 void ndf_heuristic(double t, double y[6], double ideal_angles[2], ConfigStruct *cfg, double adapted_angles[2])

@@ -99,11 +99,15 @@ def tof_wrt_all_obj(params: npt.NDArray[np.floating], base_cfg: ConfigStruct) ->
     sol = run_mission(base_cfg)
     tof = sol.t[-1]
 
+    if tof - 1000 > base_cfg.t_span[1]:
+        print("ERROR: tof too long")
+        return np.inf
+
     # determine if the mission was successful
     if sol.fault or not sol.halt:
         print("ERROR: fault or not halt")
         return np.inf
 
-    print(f"Tof: {tof:.0f} sec using weights {params}")
+    print(f"Tof: {tof:.0f} sec = {(tof / 86400):.0f} days using weights {params}")
 
     return tof

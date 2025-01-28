@@ -37,3 +37,22 @@ OGURI_CASE_G = ConfigStruct(
     kappa_feathered=np.deg2rad(90),
     sail_sigma=0.005,
 )
+
+
+OGURI_CASE_E = ConfigStruct(
+    y0=np.array([1.1625e07, 0.725, 0, 0.0005, 0, 0]),
+    y_target=np.array([1.2130e07, 0.7370, 0, 0, 0.6176]),
+    solver=ODESolver.RK67,
+    steering_law=SteeringLaw.LYAPUNOV,
+    t_span=(0, 1e8),
+    ode_rel_tol=1e-6,
+    ode_h0=1e2,
+    guidance_tol=3e-2,
+    guidance_weights=np.array([1, 1, 1, 1, 1]),
+    penalty_param=10,
+    min_pe=6878e3,
+    penalty_weight=1,
+    kappa_degraded=np.deg2rad(64),
+    kappa_feathered=np.deg2rad(90),
+    sail_sigma=0.0019,
+)
